@@ -1,0 +1,26 @@
+{
+  "name": "mylanguage",
+  "version": "0.1.0",
+  "description": "My language",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "nodemon -x ts-node src/index.ts",
+    "test": "mocha -r ts-node/register 'test/**/*.ts'",
+    "coverage": "nyc npm run test"
+  },
+  "author": "cam2332",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.2.15",
+    "@types/mocha": "^8.2.1",
+    "@types/node": "^14.14.33",
+    "@typescript-eslint/eslint-plugin": "^4.17.0",
+    "@typescript-eslint/parser": "^4.17.0",
+    "chai": "^4.3.3",
+    "eslint": "^7.21.0",
+    "mocha": "^8.3.1",
+    "nyc": "^15.1.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.3"
+  }
+}
