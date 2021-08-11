@@ -1,3 +1,4 @@
+import ParserError from './ParserError'
 import Token from './Token'
 
 export enum TokenType {
@@ -74,4 +75,103 @@ export enum TokenType {
   RIGHT_BRACKET, // ]
 
   TOK_LAST,
+}
+
+export function isPrimitiveType(token: Token): boolean {
+  let isPrimitiveType = false
+
+  isPrimitiveType = token.type === TokenType.INTEGER_TYPE
+  if (isPrimitiveType) {
+    return isPrimitiveType
+  }
+  isPrimitiveType = token.type === TokenType.FLOAT_TYPE
+  if (isPrimitiveType) {
+    return isPrimitiveType
+  }
+  isPrimitiveType = token.type === TokenType.STRING_TYPE
+  if (isPrimitiveType) {
+    return isPrimitiveType
+  }
+
+  return isPrimitiveType
+}
+
+export function isOperator(token: Token): boolean {
+  let isOperator = false
+
+  if (!token) {
+    throw new ParserError('Expected OPERATOR but got nothing (undefined)')
+  }
+  // Arithmetic
+  isOperator = token.type === TokenType.ADDITION
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.SUBTRACTION
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.MULTIPLICATION
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.DIVISION
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.MODULUS
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.POWER
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.INCREMENT
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.DECREMENT
+
+  if (isOperator) {
+    return isOperator
+  }
+  return isOperator
+}
+
+export function isAssignOperator(token: Token): boolean {
+  let isOperator = false
+
+  if (!token) {
+    throw new ParserError(
+      'Expected ASSIGN OPERATOR but got nothing (undefined)'
+    )
+  }
+  // Assignment
+  isOperator = token.type === TokenType.ASSIGNMENT
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.ADDITION_ASSIGNMENT
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.SUBTRACTION_ASSIGNMENT
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.MULTIPLICATION_ASSIGNMENT
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.DIVISION_ASSIGNMENT
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.MODULUS_ASSIGNMENT
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.POWER_ASSIGNMENT
+  return isOperator
 }

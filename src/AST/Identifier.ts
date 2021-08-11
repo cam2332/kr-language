@@ -1,17 +1,15 @@
 import Node from './Node'
 
 export default class Identifier extends Node {
-  value: string
-
-  constructor(value: string) {
+  constructor(public value: string, public typeAnnotation: string = 'any') {
     super()
-    this.value = value
   }
 
   public toJSON(): any {
     return {
       Identifier: {
         value: this.value,
+        ...(this.typeAnnotation && { typeAnnotation: this.typeAnnotation }),
       },
     }
   }

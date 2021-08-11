@@ -1,6 +1,10 @@
 import Token from './Token'
-import { isAssignOperator, TokenType } from './TokenType'
-import { isOperator } from './TokenType'
+import {
+  isOperator,
+  isAssignOperator,
+  isPrimitiveType,
+  TokenType,
+} from './TokenType'
 import Node from './AST/Node'
 import Identifier from './AST/Identifier'
 import Program from './AST/Program'
@@ -35,6 +39,7 @@ export function parse(tokens: Token[]): Node {
       tokens[0].type === TokenType.CONST ||
       tokens[0].type === TokenType.LET
     ) {
+      const kind = tokens[0].value as VariableKind
       if (tokens[1].type !== TokenType.IDENTIFIER) {
         throw new ParserError(
           `Expected IDENTIFIER but got ${TokenType[tokens[1].type]}`,
@@ -44,17 +49,36 @@ export function parse(tokens: Token[]): Node {
           }
         )
       }
+      const identifier = new Identifier(tokens[1].value)
+      if (tokens[2].type === TokenType.COLON) {
+        if (
+          tokens[3].type === TokenType.IDENTIFIER ||
+          isPrimitiveType(tokens[3])
+        ) {
+          identifier.typeAnnotation = tokens[3].value
+          tokens.splice(0, 2)
+        } else {
+          throw new ParserError(
+            `Expected IDENTIFIER or PRIMITIVE_TYPE (Integer, Float, String) but got ${
+              TokenType[tokens[3].type]
+            }`,
+            {
+              line: tokens[3].line,
+              column: tokens[3].column,
+            }
+          )
+        }
+      }
       if (tokens[2].type !== TokenType.ASSIGNMENT) {
         throw new ParserError(
-          `Expected ASSIGNMENT '=' but got ${TokenType[tokens[1].type]}`,
+          `Expected ASSIGNMENT '=' but got ${TokenType[tokens[2].type]}`,
           {
-            line: tokens[1].line,
-            column: tokens[1].column,
+            line: tokens[2].line,
+            column: tokens[2].column,
           }
         )
       }
-      const kind = tokens[0].value as VariableKind
-      const identifier = new Identifier(tokens[1].value)
+
       tokens.splice(0, 3)
 
       return new VariableDeclaration(kind, [
