@@ -16,6 +16,8 @@ import CallExpression from './AST/CallExpression'
 import ParserError from './ParserError'
 import ExpressionStatement from './AST/ExpressionStatement'
 import AssignmentExpression from './AST/AssignmentExpression'
+import FunctionDeclaration from './AST/FunctionDeclaration'
+import BlockStatement from './AST/BlockStatement'
 import ParenthesisStatement from './AST/ParenthesisStatement'
 
 export function mainParse(tokens: Token[]): Program {
@@ -189,6 +191,123 @@ export function parse(tokens: Token[]): Node {
       } else {
         return new ParenthesisStatement(body)
       }
+    } else if (tokens[0].type === TokenType.FUNCTION) {
+      if (tokens[1].type !== TokenType.IDENTIFIER) {
+        throw new ParserError(
+          `Expected IDENTIFIER but got ${TokenType[tokens[1].type]}`,
+          {
+            line: tokens[1].line,
+            column: tokens[1].column,
+          }
+        )
+      }
+      const functionDeclaration = new FunctionDeclaration(
+        new Identifier(tokens[1].value)
+      )
+      if (tokens[2].type !== TokenType.LEFT_PARENTHESIS) {
+        throw new ParserError(
+          `Expected LEFT_PARENTHESIS but got ${TokenType[tokens[2].type]}`,
+          {
+            line: tokens[2].line,
+            column: tokens[2].column,
+          }
+        )
+      }
+
+      if (tokens[3].type === TokenType.RIGHT_PARENTHESIS) {
+        tokens.splice(0, 4)
+      } else {
+        tokens.splice(0, 3)
+
+        let i = 0
+        let leftParenthesis = 1
+        while (leftParenthesis > 0) {
+          if (tokens[i].type === TokenType.LEFT_PARENTHESIS) {
+            leftParenthesis += 1
+          }
+          if (tokens[i].type === TokenType.RIGHT_PARENTHESIS) {
+            leftParenthesis -= 1
+          }
+          i += 1
+        }
+        const paramsTokens = tokens.splice(0, i)
+
+        const params = []
+        let node
+        while (paramsTokens.length > 0) {
+          try {
+            if (paramsTokens[0].type === TokenType.COMMA) {
+              paramsTokens.splice(0, 1)
+            }
+            node = parse(paramsTokens)
+          } catch (err) {
+            console.log(err)
+            break
+          }
+          params.push(node)
+        }
+        functionDeclaration.parameters = params
+      }
+
+      // @ts-ignore
+      if (tokens[0].type === TokenType.COLON) {
+        if (
+          tokens[1].type === TokenType.IDENTIFIER ||
+          isPrimitiveType(tokens[1]) ||
+          tokens[1].type === TokenType.VOID_TYPE
+        ) {
+          functionDeclaration.returnType = tokens[1].type
+          tokens.splice(0, 2)
+        } else {
+          throw new ParserError(
+            `Expected IDENTIFIER or PRIMITIVE_TYPE (Integer, Float, String, Void?)  but got ${
+              TokenType[tokens[1].type]
+            }`,
+            {
+              line: tokens[1].line,
+              column: tokens[1].column,
+            }
+          )
+        }
+      }
+      // @ts-ignore
+      if (tokens[0].type === TokenType.LEFT_BRACE) {
+        const block = []
+        tokens.splice(0, 1)
+        let i = 0
+        let leftBraces = 1
+        while (leftBraces > 0) {
+          if (tokens[i].type === TokenType.LEFT_BRACE) {
+            leftBraces += 1
+          }
+          if (tokens[i].type === TokenType.RIGHT_BRACE) {
+            leftBraces -= 1
+          }
+          i += 1
+        }
+        const blockTokens = tokens.splice(0, i)
+
+        let node
+        while (blockTokens.length > 0) {
+          try {
+            node = parse(blockTokens)
+          } catch (err) {
+            console.log(err)
+            break
+          }
+          block.push(node)
+        }
+        functionDeclaration.body = new BlockStatement(block)
+      } else {
+        throw new ParserError(
+          `Expected LEFT_BRACE but got ${TokenType[tokens[0].type]}`,
+          {
+            line: tokens[0].line,
+            column: tokens[0].column,
+          }
+        )
+      }
+      return functionDeclaration
     }
   throw new Error('End')
   return new Node()
