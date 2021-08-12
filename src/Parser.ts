@@ -16,6 +16,7 @@ import CallExpression from './AST/CallExpression'
 import ParserError from './ParserError'
 import ExpressionStatement from './AST/ExpressionStatement'
 import AssignmentExpression from './AST/AssignmentExpression'
+import ParenthesisStatement from './AST/ParenthesisStatement'
 
 export function mainParse(tokens: Token[]): Program {
   const nodes: Node[] = []
@@ -148,6 +149,45 @@ export function parse(tokens: Token[]): Node {
         const identifier = callee
         tokens.splice(0, 1)
         return identifier
+      }
+    } else if (tokens[0].type === TokenType.LEFT_PARENTHESIS) {
+      const body = []
+      tokens.splice(0, 1)
+      let i = 0
+      let leftParenthesis = 1
+      while (leftParenthesis > 0) {
+        if (tokens[i].type === TokenType.LEFT_PARENTHESIS) {
+          leftParenthesis += 1
+        }
+        if (tokens[i].type === TokenType.RIGHT_PARENTHESIS) {
+          leftParenthesis -= 1
+        }
+        i += 1
+      }
+      const bodyTokens = tokens.splice(0, i)
+
+      let node
+      while (bodyTokens.length > 0) {
+        try {
+          node = parse(bodyTokens)
+        } catch (err) {
+          console.log(err)
+          break
+        }
+        body.push(node)
+      }
+
+      if (isOperator(tokens[0])) {
+        const operator = tokens[0].value
+        tokens.splice(0, 1)
+
+        return new BinaryExpression(
+          new ParenthesisStatement(body),
+          operator,
+          parse(tokens)
+        )
+      } else {
+        return new ParenthesisStatement(body)
       }
     }
   throw new Error('End')
