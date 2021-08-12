@@ -19,6 +19,7 @@ import AssignmentExpression from './AST/AssignmentExpression'
 import FunctionDeclaration from './AST/FunctionDeclaration'
 import BlockStatement from './AST/BlockStatement'
 import ParenthesisStatement from './AST/ParenthesisStatement'
+import ReturnStatement from './AST/ReturnStatement'
 
 export function mainParse(tokens: Token[]): Program {
   const nodes: Node[] = []
@@ -295,7 +296,11 @@ export function parse(tokens: Token[]): Node {
             console.log(err)
             break
           }
-          block.push(node)
+          if ((node as ReturnStatement).toJSON().ReturnStatement) {
+            functionDeclaration.returnStatement = node as ReturnStatement
+          } else {
+            block.push(node)
+          }
         }
         functionDeclaration.body = new BlockStatement(block)
       } else {
@@ -308,6 +313,9 @@ export function parse(tokens: Token[]): Node {
         )
       }
       return functionDeclaration
+    } else if (tokens[0].type === TokenType.RETURN) {
+      tokens.splice(0, 1)
+      return new ReturnStatement(parse(tokens))
     }
   throw new Error('End')
   return new Node()
