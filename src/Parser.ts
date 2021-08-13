@@ -23,6 +23,8 @@ import ReturnStatement from './AST/ReturnStatement'
 import ArrayExpression from './AST/ArrayExpression'
 import MemberExpression from './AST/MemberExpression'
 import StringLiteral from './AST/StringLiteral'
+import EnumDeclaration from './AST/EnumDeclaration'
+import EnumMember from './AST/EnumMember'
 
 export function mainParse(tokens: Token[]): Program {
   const nodes: Node[] = []
@@ -419,6 +421,107 @@ export function parse(tokens: Token[]): Node {
         elements.push(node)
       }
       return new ArrayExpression(elements)
+    } else if (tokens[0].type === TokenType.ENUM) {
+      if (tokens[1].type !== TokenType.IDENTIFIER) {
+        throw new ParserError(
+          `Expected IDENTIFIER but got ${TokenType[tokens[1].type]}`,
+          {
+            line: tokens[1].line,
+            column: tokens[1].column,
+          }
+        )
+      }
+      const enumName = new Identifier(tokens[1].value)
+      if (tokens[2].type === TokenType.LEFT_BRACE) {
+        tokens.splice(0, 3)
+        let i = 0
+        let leftBraces = 1
+        while (leftBraces > 0) {
+          if (tokens[i].type === TokenType.LEFT_BRACE) {
+            leftBraces += 1
+          }
+          if (tokens[i].type === TokenType.RIGHT_BRACE) {
+            leftBraces -= 1
+          }
+          i += 1
+        }
+        const enumTokens = tokens.splice(0, i)
+
+        const members = []
+        let node
+        while (enumTokens.length > 0) {
+          try {
+            if (enumTokens[0].type === TokenType.COMMA) {
+              enumTokens.splice(0, 1)
+            }
+            node = parse(enumTokens)
+          } catch (err) {
+            console.log(err)
+            break
+          }
+          if (node.$type === 'Identifier') {
+            members.push(new EnumMember(node as Identifier))
+          } else if (
+            node.$type === 'ExpressionStatement' &&
+            (node as ExpressionStatement).expression.$type ===
+              'AssignmentExpression'
+          ) {
+            const assignment = (node as ExpressionStatement)
+              .expression as AssignmentExpression
+            if (assignment.left.$type !== 'Identifier') {
+              throw new ParserError(
+                'Left side of assignment expression must be an Identifier',
+                {
+                  line: tokens[0].line,
+                  column: tokens[0].column,
+                }
+              )
+            }
+            if (assignment.operator !== '=') {
+              throw new ParserError(
+                'The only operator allowed is the assignment operator',
+                {
+                  line: tokens[0].line,
+                  column: tokens[0].column,
+                }
+              )
+            }
+            if (
+              assignment.right.$type !== 'NumericLiteral' &&
+              assignment.right.$type !== 'StringLiteral'
+            ) {
+              throw new ParserError(
+                'The only allowed values are a numeric literal and a string literal',
+                {
+                  line: tokens[0].line,
+                  column: tokens[0].column,
+                }
+              )
+            }
+            members.push(
+              new EnumMember(assignment.left as Identifier, assignment.right)
+            )
+          } else {
+            throw new ParserError(
+              'Enum members must be either an Identifier or ' +
+                'an ExpressionStatement with expression AssignmentExpression',
+              {
+                line: tokens[0].line,
+                column: tokens[0].column,
+              }
+            )
+          }
+        }
+        return new EnumDeclaration(enumName, members)
+      } else {
+        throw new ParserError(
+          `Expected LEFT_BRACE but got ${TokenType[tokens[2].type]}`,
+          {
+            line: tokens[2].line,
+            column: tokens[2].column,
+          }
+        )
+      }
     }
   throw new Error('End')
   return new Node()
