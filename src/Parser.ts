@@ -206,23 +206,8 @@ export function parse(tokens: Token[]): Node {
             }
           )
         }
-        if (isAssignOperator(tokens[3])) {
-          const operator = tokens[3].value
-          tokens.splice(0, 4)
-          return new ExpressionStatement(
-            new AssignmentExpression(callee, operator, parse(tokens))
-          )
-        } else {
-          throw new ParserError(
-            `Expected ASSIGNMENT operators  ( = += -= *= /= %= ^= ) but got ${
-              TokenType[tokens[3].type]
-            }`,
-            {
-              line: tokens[3].line,
-              column: tokens[3].column,
-            }
-          )
-        }
+        tokens.splice(0, 3)
+        return callee
       } else {
         const identifier = callee
         tokens.splice(0, 1)
