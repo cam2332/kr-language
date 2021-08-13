@@ -15,6 +15,7 @@ export default class FunctionDeclaration extends Node {
     public returnStatement: ReturnStatement | undefined = undefined
   ) {
     super()
+    this.$type = 'FunctionDeclaration'
   }
 
   public toJSON(): any {

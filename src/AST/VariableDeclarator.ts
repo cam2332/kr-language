@@ -4,6 +4,7 @@ import Node from './Node'
 export default class VariableDeclarator extends Node {
   constructor(public name: Identifier, public init: Node) {
     super()
+    this.$type = 'VariableDeclarator'
   }
 
   public toJSON(): any {

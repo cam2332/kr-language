@@ -9,6 +9,7 @@ export default class VariableDeclaration extends Node {
     public declarations: VariableDeclarator[] = []
   ) {
     super()
+    this.$type = 'VariableDeclaration'
   }
 
   public toJSON(): any {
