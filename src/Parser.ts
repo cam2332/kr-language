@@ -187,6 +187,40 @@ export function parse(tokens: Token[]): Node {
         } catch (err) {
           console.log(err)
         }
+      } else if (tokens[1].type === TokenType.COLON) {
+        if (
+          tokens[2].type === TokenType.IDENTIFIER ||
+          isPrimitiveType(tokens[2])
+        ) {
+          callee.typeAnnotation = tokens[2].value
+        } else {
+          throw new ParserError(
+            `Expected IDENTIFIER or PRIMITIVE_TYPE (Integer, Float, String) but got ${
+              TokenType[tokens[2].type]
+            }`,
+            {
+              line: tokens[2].line,
+              column: tokens[2].column,
+            }
+          )
+        }
+        if (isAssignOperator(tokens[3])) {
+          const operator = tokens[3].value
+          tokens.splice(0, 4)
+          return new ExpressionStatement(
+            new AssignmentExpression(callee, operator, parse(tokens))
+          )
+        } else {
+          throw new ParserError(
+            `Expected ASSIGNMENT operators  ( = += -= *= /= %= ^= ) but got ${
+              TokenType[tokens[3].type]
+            }`,
+            {
+              line: tokens[3].line,
+              column: tokens[3].column,
+            }
+          )
+        }
       } else {
         const identifier = callee
         tokens.splice(0, 1)
