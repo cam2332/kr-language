@@ -20,6 +20,7 @@ import FunctionDeclaration from './AST/FunctionDeclaration'
 import BlockStatement from './AST/BlockStatement'
 import ParenthesisStatement from './AST/ParenthesisStatement'
 import ReturnStatement from './AST/ReturnStatement'
+import ArrayExpression from './AST/ArrayExpression'
 
 export function mainParse(tokens: Token[]): Program {
   const nodes: Node[] = []
@@ -320,6 +321,36 @@ export function parse(tokens: Token[]): Node {
     } else if (tokens[0].type === TokenType.RETURN) {
       tokens.splice(0, 1)
       return new ReturnStatement(parse(tokens))
+    } else if (tokens[0].type === TokenType.LEFT_BRACKET) {
+      const elements = []
+      tokens.splice(0, 1)
+      let i = 0
+      let leftBrackets = 1
+      while (leftBrackets > 0) {
+        if (tokens[i].type === TokenType.LEFT_BRACKET) {
+          leftBrackets += 1
+        }
+        if (tokens[i].type === TokenType.RIGHT_BRACKET) {
+          leftBrackets -= 1
+        }
+        i += 1
+      }
+      const elementsTokens = tokens.splice(0, i)
+
+      let node
+      while (elementsTokens.length > 0) {
+        try {
+          if (elementsTokens[0].type === TokenType.COMMA) {
+            elementsTokens.splice(0, 1)
+          }
+          node = parse(elementsTokens)
+        } catch (err) {
+          console.log(err)
+          break
+        }
+        elements.push(node)
+      }
+      return new ArrayExpression(elements)
     }
   throw new Error('End')
   return new Node()
