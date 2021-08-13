@@ -22,6 +22,7 @@ import ParenthesisStatement from './AST/ParenthesisStatement'
 import ReturnStatement from './AST/ReturnStatement'
 import ArrayExpression from './AST/ArrayExpression'
 import MemberExpression from './AST/MemberExpression'
+import StringLiteral from './AST/StringLiteral'
 
 export function mainParse(tokens: Token[]): Program {
   const nodes: Node[] = []
@@ -99,6 +100,16 @@ export function parse(tokens: Token[]): Node {
           ? parseInt(tokens[0].value)
           : parseFloat(tokens[0].value)
       )
+      tokens.splice(0, 1)
+      if (isOperator(tokens[0])) {
+        const operator = tokens[0].value
+        tokens.splice(0, 1)
+        return new BinaryExpression(left, operator, parse(tokens))
+      } else {
+        return left
+      }
+    } else if (tokens[0].type === TokenType.STRING) {
+      const left = new StringLiteral(tokens[0].value)
       tokens.splice(0, 1)
       if (isOperator(tokens[0])) {
         const operator = tokens[0].value
