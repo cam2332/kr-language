@@ -142,6 +142,10 @@ export function parse(tokens: Token[]): Node {
           }
         }
         return new CallExpression(callee, args)
+      } else if (isOperator(tokens[1])) {
+        const operator = tokens[1].value
+        tokens.splice(0, 2)
+        return new BinaryExpression(callee, operator, parse(tokens))
       } else if (isAssignOperator(tokens[1])) {
         const operator = tokens[1].value
         tokens.splice(0, 2)
