@@ -206,6 +206,13 @@ export function parse(tokens: Token[]): Node {
             }
           )
         }
+        if (isAssignOperator(tokens[3])) {
+          const operator = tokens[3].value
+          tokens.splice(0, 4)
+          return new ExpressionStatement(
+            new AssignmentExpression(callee, operator, parse(tokens))
+          )
+        }
         tokens.splice(0, 3)
         return callee
       } else {
