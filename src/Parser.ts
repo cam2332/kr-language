@@ -21,6 +21,7 @@ import BlockStatement from './AST/BlockStatement'
 import ParenthesisStatement from './AST/ParenthesisStatement'
 import ReturnStatement from './AST/ReturnStatement'
 import ArrayExpression from './AST/ArrayExpression'
+import MemberExpression from './AST/MemberExpression'
 
 export function mainParse(tokens: Token[]): Program {
   const nodes: Node[] = []
@@ -153,6 +154,28 @@ export function parse(tokens: Token[]): Node {
         return new ExpressionStatement(
           new AssignmentExpression(callee, operator, parse(tokens))
         )
+      } else if (tokens[1].type === TokenType.LEFT_BRACKET) {
+        tokens.splice(0, 2)
+        let i = 0
+        let leftBrackets = 1
+        while (leftBrackets > 0) {
+          if (tokens[i].type === TokenType.LEFT_BRACKET) {
+            leftBrackets += 1
+          }
+          if (tokens[i].type === TokenType.RIGHT_BRACKET) {
+            leftBrackets -= 1
+          }
+          i += 1
+        }
+        const propertyTokens = tokens.splice(0, i)
+
+        let node
+        try {
+          node = parse(propertyTokens)
+          return new MemberExpression(callee, node)
+        } catch (err) {
+          console.log(err)
+        }
       } else {
         const identifier = callee
         tokens.splice(0, 1)
