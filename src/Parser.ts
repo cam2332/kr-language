@@ -25,6 +25,8 @@ import MemberExpression from './AST/MemberExpression'
 import StringLiteral from './AST/StringLiteral'
 import EnumDeclaration from './AST/EnumDeclaration'
 import EnumMember from './AST/EnumMember'
+import ObjectProperty from './AST/ObjectProperty'
+import ObjectExpression from './AST/ObjectExpression'
 
 export function mainParse(tokens: Token[]): Program {
   const nodes: Node[] = []
@@ -514,6 +516,70 @@ export function parse(tokens: Token[]): Node {
           }
         )
       }
+    } else if (tokens[0].type === TokenType.LEFT_BRACE) {
+      tokens.splice(0, 1)
+      const properties: ObjectProperty[] = []
+      let i = 0
+      let leftBrace = 1
+      while (leftBrace > 0) {
+        if (tokens[i].type === TokenType.LEFT_BRACE) {
+          leftBrace += 1
+        }
+        if (tokens[i].type === TokenType.RIGHT_BRACE) {
+          leftBrace -= 1
+        }
+        i += 1
+      }
+      const propertiesTokens = tokens.splice(0, i)
+
+      let node: ObjectProperty
+      while (propertiesTokens.length > 0) {
+        try {
+          if (propertiesTokens[0].type === TokenType.COMMA) {
+            propertiesTokens.splice(0, 1)
+          }
+          if (propertiesTokens[0].type === TokenType.RIGHT_BRACE) {
+            propertiesTokens.splice(0, 1)
+            continue
+          }
+          if (propertiesTokens[0].type === TokenType.IDENTIFIER) {
+            const propertyKey = new Identifier(propertiesTokens[0].value)
+            if (propertiesTokens[1].type === TokenType.COLON) {
+              propertiesTokens.splice(0, 2)
+              node = new ObjectProperty(propertyKey, parse(propertiesTokens))
+            } else if (
+              propertiesTokens[1].type === TokenType.COMMA ||
+              propertiesTokens[1].type === TokenType.RIGHT_BRACE
+            ) {
+              propertiesTokens.splice(0, 1)
+              node = new ObjectProperty(propertyKey, propertyKey, true)
+            } else {
+              throw new ParserError(
+                `Expected COLON but got ${TokenType[propertiesTokens[1].type]}`,
+                {
+                  line: propertiesTokens[1].line,
+                  column: propertiesTokens[1].column,
+                }
+              )
+            }
+          } else {
+            throw new ParserError(
+              `Expected IDENTIFIER but got ${
+                TokenType[propertiesTokens[0].type]
+              }`,
+              {
+                line: propertiesTokens[0].line,
+                column: propertiesTokens[0].column,
+              }
+            )
+          }
+        } catch (err) {
+          console.log(err)
+          break
+        }
+        properties.push(node)
+      }
+      return new ObjectExpression(properties)
     }
   throw new Error('End')
   return new Node()
