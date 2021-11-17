@@ -195,6 +195,9 @@ export function parse(tokens: Token[]): Node {
         } catch (err) {
           console.log(err)
         }
+      } else if (tokens.length > 1 && tokens[1].type === TokenType.DOT) {
+        tokens.splice(0, 2)
+        return new MemberExpression(callee, parse(tokens))
       } else if (tokens.length > 1 && tokens[1].type === TokenType.COLON) {
         if (
           tokens[2].type === TokenType.IDENTIFIER ||
