@@ -105,7 +105,7 @@ export function parse(tokens: Token[]): Node {
           : parseFloat(tokens[0].value)
       )
       tokens.splice(0, 1)
-      if (isOperator(tokens[0])) {
+      if (tokens.length > 0 && isOperator(tokens[0])) {
         const operator = tokens[0].value
         tokens.splice(0, 1)
         return new BinaryExpression(left, operator, parse(tokens))
@@ -115,7 +115,7 @@ export function parse(tokens: Token[]): Node {
     } else if (tokens[0].type === TokenType.STRING) {
       const left = new StringLiteral(tokens[0].value)
       tokens.splice(0, 1)
-      if (isOperator(tokens[0])) {
+      if (tokens.length > 0 && isOperator(tokens[0])) {
         const operator = tokens[0].value
         tokens.splice(0, 1)
         return new BinaryExpression(left, operator, parse(tokens))
@@ -124,7 +124,7 @@ export function parse(tokens: Token[]): Node {
       }
     } else if (tokens[0].type === TokenType.IDENTIFIER) {
       const callee = new Identifier(tokens[0].value)
-      if (tokens[1].type === TokenType.LEFT_PARENTHESIS) {
+      if (tokens.length > 1 && tokens[1].type === TokenType.LEFT_PARENTHESIS) {
         const args = []
         if (tokens[2].type === TokenType.RIGHT_PARENTHESIS) {
           tokens.splice(0, 3)
@@ -159,17 +159,20 @@ export function parse(tokens: Token[]): Node {
           }
         }
         return new CallExpression(callee, args)
-      } else if (isOperator(tokens[1])) {
+      } else if (tokens.length > 1 && isOperator(tokens[1])) {
         const operator = tokens[1].value
         tokens.splice(0, 2)
         return new BinaryExpression(callee, operator, parse(tokens))
-      } else if (isAssignOperator(tokens[1])) {
+      } else if (tokens.length > 1 && isAssignOperator(tokens[1])) {
         const operator = tokens[1].value
         tokens.splice(0, 2)
         return new ExpressionStatement(
           new AssignmentExpression(callee, operator, parse(tokens))
         )
-      } else if (tokens[1].type === TokenType.LEFT_BRACKET) {
+      } else if (
+        tokens.length > 1 &&
+        tokens[1].type === TokenType.LEFT_BRACKET
+      ) {
         tokens.splice(0, 2)
         let i = 0
         let leftBrackets = 1
@@ -191,7 +194,7 @@ export function parse(tokens: Token[]): Node {
         } catch (err) {
           console.log(err)
         }
-      } else if (tokens[1].type === TokenType.COLON) {
+      } else if (tokens.length > 1 && tokens[1].type === TokenType.COLON) {
         if (
           tokens[2].type === TokenType.IDENTIFIER ||
           isPrimitiveType(tokens[2])
@@ -208,7 +211,7 @@ export function parse(tokens: Token[]): Node {
             }
           )
         }
-        if (isAssignOperator(tokens[3])) {
+        if (tokens.length > 4 && isAssignOperator(tokens[3])) {
           const operator = tokens[3].value
           tokens.splice(0, 4)
           return new ExpressionStatement(
