@@ -159,6 +159,15 @@ export function parse(tokens: Token[]): Node {
             args.push(node)
           }
         }
+        if (tokens.length > 0 && isOperator(tokens[0])) {
+          const operator = tokens[0].value
+          tokens.splice(0, 1)
+          return new BinaryExpression(
+            new CallExpression(callee, args),
+            operator,
+            parse(tokens)
+          )
+        }
         return new CallExpression(callee, args)
       } else if (tokens.length > 1 && isOperator(tokens[1])) {
         const operator = tokens[1].value
