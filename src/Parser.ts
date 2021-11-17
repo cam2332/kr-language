@@ -143,6 +143,7 @@ export function parse(tokens: Token[]): Node {
             i += 1
           }
           const argsTokens = tokens.splice(0, i)
+          argsTokens.pop()
 
           let node
           while (argsTokens.length > 0) {
@@ -240,6 +241,7 @@ export function parse(tokens: Token[]): Node {
         i += 1
       }
       const bodyTokens = tokens.splice(0, i)
+      bodyTokens.pop()
 
       let node
       while (bodyTokens.length > 0) {
@@ -304,6 +306,7 @@ export function parse(tokens: Token[]): Node {
           i += 1
         }
         const paramsTokens = tokens.splice(0, i)
+        paramsTokens.pop()
 
         const params = []
         let node
@@ -359,6 +362,7 @@ export function parse(tokens: Token[]): Node {
           i += 1
         }
         const blockTokens = tokens.splice(0, i)
+        blockTokens.pop()
 
         let node
         while (blockTokens.length > 0) {
@@ -403,6 +407,7 @@ export function parse(tokens: Token[]): Node {
         i += 1
       }
       const elementsTokens = tokens.splice(0, i)
+      elementsTokens.pop()
 
       let node
       while (elementsTokens.length > 0) {
@@ -443,6 +448,7 @@ export function parse(tokens: Token[]): Node {
           i += 1
         }
         const enumTokens = tokens.splice(0, i)
+        enumTokens.pop()
 
         const members = []
         let node
