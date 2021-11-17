@@ -231,6 +231,17 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       }
 
+      if (line[i] === '.') {
+        tokens.push({
+          line: lineNumber,
+          column: i,
+          type: TokenType.DOT,
+          value: line[i],
+        })
+        i += 1
+        continue
+      }
+
       if (
         NUMERIC_REGEX.test(line[i]) &&
         identifier.type === TokenType.TOK_LAST &&
