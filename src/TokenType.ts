@@ -136,6 +136,46 @@ export function isOperator(token: Token): boolean {
   if (isOperator) {
     return isOperator
   }
+
+  // Comparison
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.EQUAL
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.NOT_EQUAL
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.GREATER_THAN
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.LESS_THAN
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.GREATER_THAN_OR_EQUAL
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.LESS_THAN_OR_EQUAL
+  // Logical
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.AND
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.OR
+  if (isOperator) {
+    return isOperator
+  }
+  isOperator = token.type === TokenType.NOT
+
   return isOperator
 }
 
