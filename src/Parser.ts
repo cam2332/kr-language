@@ -27,6 +27,8 @@ import EnumDeclaration from './AST/EnumDeclaration'
 import EnumMember from './AST/EnumMember'
 import ObjectProperty from './AST/ObjectProperty'
 import ObjectExpression from './AST/ObjectExpression'
+import IfStatement from './AST/IfStatement'
+import { getTokensBetweenTokens } from './utils/ParserUtils'
 
 export function mainParse(tokens: Token[]): Program {
   const nodes: Node[] = []
@@ -601,6 +603,92 @@ export function parse(tokens: Token[]): Node {
         properties.push(node)
       }
       return new ObjectExpression(properties)
+    } else if (tokens[0].type === TokenType.IF) {
+      // Remove 'IF' token
+      tokens.splice(0, 1)
+
+      let ifStatement: IfStatement
+
+      // Get tokens between parentheses for test node
+      const testTokens = getTokensBetweenTokens(
+        tokens,
+        TokenType.LEFT_PARENTHESIS,
+        TokenType.RIGHT_PARENTHESIS
+      )
+      // Parse test tokens
+      const testNode = parse(testTokens)
+
+      // Get tokens between braces for consequent block
+      const consequentTokens = getTokensBetweenTokens(
+        tokens,
+        TokenType.LEFT_BRACE,
+        TokenType.RIGHT_BRACE
+      )
+
+      // Parse consequent block tokens
+      const consequentBlock: Node[] = []
+      let node
+      while (consequentTokens.length > 0) {
+        node = parse(consequentTokens)
+        consequentBlock.push(node)
+      }
+
+      // @ts-ignore
+      if (tokens[0].type === TokenType.ELSE) {
+        // Remove 'ELSE' token
+        tokens.splice(0, 1)
+        if (tokens[0].type === TokenType.IF) {
+          const elseIf = parse(tokens)
+          // Check if parsed tokens are of type 'IfStatement'
+          if (elseIf.$type === 'IfStatement') {
+            return new IfStatement(
+              testNode,
+              new BlockStatement(consequentBlock),
+              elseIf as IfStatement
+            )
+          } else {
+            throw new ParserError(
+              `Expected start of 'If statement' but got ${elseIf.$type}`,
+              {
+                line: tokens[0].line,
+                column: tokens[0].column,
+              }
+            )
+          }
+        } else {
+          // Get tokens between braces for alternative block
+          const alternativeTokens = getTokensBetweenTokens(
+            tokens,
+            TokenType.LEFT_BRACE,
+            TokenType.RIGHT_BRACE
+          )
+
+          // Parse alternative block tokens
+          const alternativeBlock: Node[] = []
+          let node
+          while (alternativeTokens.length > 0) {
+            node = parse(alternativeTokens)
+            alternativeBlock.push(node)
+          }
+
+          /* return 'If statement' with test node, 
+          consequent block and alternative block */
+          return new IfStatement(
+            testNode,
+            new BlockStatement(consequentBlock),
+            new BlockStatement(alternativeBlock)
+          )
+        }
+      } else {
+        /* If 'ELSE' token doesn't exist return 'If statement' 
+           with test node and consequent block
+           */
+        return new IfStatement(
+          testNode,
+          new BlockStatement(consequentBlock),
+          undefined
+        )
+      }
     }
   throw new Error('End')
   return new Node()
