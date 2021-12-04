@@ -1,8 +1,6 @@
 import * as fs from 'fs'
 import * as rd from 'readline'
 import { TokenType } from './TokenType'
-import Token from './Token'
-import util from 'util'
 import { tokenize } from './Lexer'
 import { mainParse } from './Parser'
 
@@ -51,8 +49,6 @@ reader.on('close', () => {
     console.log(err)
   }
 
-  printTokens(tokens)
-
   const program = mainParse(tokens)
 
   try {
@@ -63,24 +59,4 @@ reader.on('close', () => {
   } catch (err) {
     console.log(err)
   }
-
-  console.log('parser\n', JSON.stringify(program, null, 2))
 })
-
-function printTokens(data: Token[]): void {
-  data.forEach((token) => {
-    console.log(
-      util.inspect(
-        {
-          line: token.line,
-          column: token.column,
-          type: TokenType[token.type],
-          value: token.value,
-        },
-        false,
-        1,
-        true
-      )
-    )
-  })
-}

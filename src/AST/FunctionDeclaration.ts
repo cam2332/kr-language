@@ -3,7 +3,6 @@ import { TokenType } from '../TokenType'
 import BlockStatement from './BlockStatement'
 import Identifier from './Identifier'
 import Node from './Node'
-import Parameter from './Parameter'
 import ReturnStatement from './ReturnStatement'
 
 export default class FunctionDeclaration extends Node {
