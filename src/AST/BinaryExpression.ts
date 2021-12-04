@@ -3,6 +3,7 @@ import Node from './Node'
 export default class BinaryExpression extends Node {
   constructor(public left: Node, public operator: string, public right: Node) {
     super()
+    this.$type = 'BinaryExpression'
   }
 
   public toJSON(): any {
