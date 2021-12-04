@@ -216,6 +216,10 @@ export function isAssignOperator(token: Token): boolean {
   return isOperator
 }
 
+export function isUnaryOperator(token: Token): boolean {
+  return token.type === TokenType.SUBTRACTION || token.type === TokenType.NOT
+}
+
 export function compareOperatorPriority(left: string, right: string): number {
   const checkPriority = (operator: string) => {
     return operator === '='

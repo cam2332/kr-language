@@ -5,6 +5,7 @@ import {
   isPrimitiveType,
   TokenType,
   compareOperatorPriority,
+  isUnaryOperator,
 } from './TokenType'
 import Node from './AST/Node'
 import Identifier from './AST/Identifier'
@@ -30,6 +31,7 @@ import ObjectProperty from './AST/ObjectProperty'
 import ObjectExpression from './AST/ObjectExpression'
 import IfStatement from './AST/IfStatement'
 import { getTokensBetweenTokens } from './utils/ParserUtils'
+import UnaryExpression from './AST/UnaryExpression'
 
 export function mainParse(tokens: Token[]): Program {
   const nodes: Node[] = []
@@ -121,6 +123,10 @@ export function parse(tokens: Token[]): Node {
       } else {
         return left
       }
+    } else if (isUnaryOperator(tokens[0])) {
+      const operator = tokens[0].value
+      tokens.splice(0, 1)
+      return new UnaryExpression(operator, parse(tokens))
     } else if (tokens[0].type === TokenType.IDENTIFIER) {
       const callee = new Identifier(tokens[0].value)
       if (tokens.length > 1 && tokens[1].type === TokenType.LEFT_PARENTHESIS) {
