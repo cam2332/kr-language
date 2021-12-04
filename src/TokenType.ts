@@ -215,3 +215,16 @@ export function isAssignOperator(token: Token): boolean {
   isOperator = token.type === TokenType.POWER_ASSIGNMENT
   return isOperator
 }
+
+export function compareOperatorPriority(left: string, right: string): number {
+  const checkPriority = (operator: string) => {
+    return operator === '='
+      ? 0
+      : operator === '+' || operator === '-'
+      ? 1
+      : operator === '*' || operator === '/'
+      ? 2
+      : -2
+  }
+  return checkPriority(right) - checkPriority(left)
+}

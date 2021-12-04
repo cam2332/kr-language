@@ -4,6 +4,7 @@ import {
   isAssignOperator,
   isPrimitiveType,
   TokenType,
+  compareOperatorPriority,
 } from './TokenType'
 import Node from './AST/Node'
 import Identifier from './AST/Identifier'
@@ -108,9 +109,7 @@ export function parse(tokens: Token[]): Node {
       )
       tokens.splice(0, 1)
       if (tokens.length > 0 && isOperator(tokens[0])) {
-        const operator = tokens[0].value
-        tokens.splice(0, 1)
-        return new BinaryExpression(left, operator, parse(tokens))
+        return operatorPrecedence(tokens, left)
       } else {
         return left
       }
@@ -118,9 +117,7 @@ export function parse(tokens: Token[]): Node {
       const left = new StringLiteral(tokens[0].value)
       tokens.splice(0, 1)
       if (tokens.length > 0 && isOperator(tokens[0])) {
-        const operator = tokens[0].value
-        tokens.splice(0, 1)
-        return new BinaryExpression(left, operator, parse(tokens))
+        return operatorPrecedence(tokens, left)
       } else {
         return left
       }
@@ -162,19 +159,12 @@ export function parse(tokens: Token[]): Node {
           }
         }
         if (tokens.length > 0 && isOperator(tokens[0])) {
-          const operator = tokens[0].value
-          tokens.splice(0, 1)
-          return new BinaryExpression(
-            new CallExpression(callee, args),
-            operator,
-            parse(tokens)
-          )
+          return operatorPrecedence(tokens, new CallExpression(callee, args))
         }
         return new CallExpression(callee, args)
       } else if (tokens.length > 1 && isOperator(tokens[1])) {
-        const operator = tokens[1].value
-        tokens.splice(0, 2)
-        return new BinaryExpression(callee, operator, parse(tokens))
+        tokens.splice(0, 1)
+        return operatorPrecedence(tokens, callee)
       } else if (tokens.length > 1 && isAssignOperator(tokens[1])) {
         const operator = tokens[1].value
         tokens.splice(0, 2)
@@ -269,14 +259,7 @@ export function parse(tokens: Token[]): Node {
       }
 
       if (isOperator(tokens[0])) {
-        const operator = tokens[0].value
-        tokens.splice(0, 1)
-
-        return new BinaryExpression(
-          new ParenthesisStatement(body),
-          operator,
-          parse(tokens)
-        )
+        return operatorPrecedence(tokens, new ParenthesisStatement(body))
       } else {
         return new ParenthesisStatement(body)
       }
@@ -692,4 +675,30 @@ export function parse(tokens: Token[]): Node {
     }
   throw new Error('End')
   return new Node()
+}
+
+function operatorPrecedence(tokens: Token[], leftArg: Node): BinaryExpression {
+  const operator = tokens[0].value
+  tokens.splice(0, 1)
+
+  const rightBinaryNode = parse(tokens)
+  const opPriority = compareOperatorPriority(
+    operator,
+    (rightBinaryNode as BinaryExpression).operator
+  )
+  if (
+    rightBinaryNode.$type === 'BinaryExpression' &&
+    (opPriority === -1 || opPriority === 0)
+  ) {
+    return new BinaryExpression(
+      new BinaryExpression(
+        leftArg,
+        operator,
+        (rightBinaryNode as BinaryExpression).left
+      ),
+      (rightBinaryNode as BinaryExpression).operator,
+      (rightBinaryNode as BinaryExpression).right
+    )
+  }
+  return new BinaryExpression(leftArg, operator, rightBinaryNode)
 }
