@@ -220,6 +220,10 @@ export function isUnaryOperator(token: Token): boolean {
   return token.type === TokenType.SUBTRACTION || token.type === TokenType.NOT
 }
 
+export function isBooleanLiteral(token: Token): boolean {
+  return token.type === TokenType.TRUE || token.type === TokenType.FALSE
+}
+
 export function compareOperatorPriority(left: string, right: string): number {
   const checkPriority = (operator: string) => {
     return operator === '='
