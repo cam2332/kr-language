@@ -30,8 +30,8 @@ reader.on('close', () => {
       stream.write(
         JSON.stringify(
           {
-            line: token.line,
-            column: token.column,
+            start: token.start,
+            end: token.end,
             type: TokenType[token.type],
             value: token.value,
           },

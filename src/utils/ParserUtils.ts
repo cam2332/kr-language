@@ -16,8 +16,8 @@ export function getTokensBetweenTokens(
         TokenType[tokens[0].type]
       }`,
       {
-        line: tokens[0].line,
-        column: tokens[0].column,
+        start: tokens[0].start,
+        end: tokens[0].end,
       }
     )
   }

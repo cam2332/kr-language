@@ -62,8 +62,8 @@ export function parse(tokens: Token[]): Node {
         throw new ParserError(
           `Expected IDENTIFIER but got ${TokenType[tokens[1].type]}`,
           {
-            line: tokens[1].line,
-            column: tokens[1].column,
+            start: tokens[1].start,
+            end: tokens[1].end,
           }
         )
       }
@@ -81,8 +81,8 @@ export function parse(tokens: Token[]): Node {
               TokenType[tokens[3].type]
             }`,
             {
-              line: tokens[3].line,
-              column: tokens[3].column,
+              start: tokens[3].start,
+              end: tokens[3].end,
             }
           )
         }
@@ -91,8 +91,8 @@ export function parse(tokens: Token[]): Node {
         throw new ParserError(
           `Expected ASSIGNMENT '=' but got ${TokenType[tokens[2].type]}`,
           {
-            line: tokens[2].line,
-            column: tokens[2].column,
+            start: tokens[2].start,
+            end: tokens[2].end,
           }
         )
       }
@@ -223,8 +223,8 @@ export function parse(tokens: Token[]): Node {
               TokenType[tokens[2].type]
             }`,
             {
-              line: tokens[2].line,
-              column: tokens[2].column,
+              start: tokens[2].start,
+              end: tokens[2].end,
             }
           )
         }
@@ -280,8 +280,8 @@ export function parse(tokens: Token[]): Node {
         throw new ParserError(
           `Expected IDENTIFIER but got ${TokenType[tokens[1].type]}`,
           {
-            line: tokens[1].line,
-            column: tokens[1].column,
+            start: tokens[1].start,
+            end: tokens[1].end,
           }
         )
       }
@@ -292,8 +292,8 @@ export function parse(tokens: Token[]): Node {
         throw new ParserError(
           `Expected LEFT_PARENTHESIS but got ${TokenType[tokens[2].type]}`,
           {
-            line: tokens[2].line,
-            column: tokens[2].column,
+            start: tokens[2].start,
+            end: tokens[2].end,
           }
         )
       }
@@ -349,8 +349,8 @@ export function parse(tokens: Token[]): Node {
               TokenType[tokens[1].type]
             }`,
             {
-              line: tokens[1].line,
-              column: tokens[1].column,
+              start: tokens[1].start,
+              end: tokens[1].end,
             }
           )
         }
@@ -392,8 +392,8 @@ export function parse(tokens: Token[]): Node {
         throw new ParserError(
           `Expected LEFT_BRACE but got ${TokenType[tokens[0].type]}`,
           {
-            line: tokens[0].line,
-            column: tokens[0].column,
+            start: tokens[0].start,
+            end: tokens[0].end,
           }
         )
       }
@@ -437,8 +437,8 @@ export function parse(tokens: Token[]): Node {
         throw new ParserError(
           `Expected IDENTIFIER but got ${TokenType[tokens[1].type]}`,
           {
-            line: tokens[1].line,
-            column: tokens[1].column,
+            start: tokens[1].start,
+            end: tokens[1].end,
           }
         )
       }
@@ -484,8 +484,8 @@ export function parse(tokens: Token[]): Node {
               throw new ParserError(
                 'Left side of assignment expression must be an Identifier',
                 {
-                  line: tokens[0].line,
-                  column: tokens[0].column,
+                  start: tokens[0].start,
+                  end: tokens[0].end,
                 }
               )
             }
@@ -493,8 +493,8 @@ export function parse(tokens: Token[]): Node {
               throw new ParserError(
                 'The only operator allowed is the assignment operator',
                 {
-                  line: tokens[0].line,
-                  column: tokens[0].column,
+                  start: tokens[0].start,
+                  end: tokens[0].end,
                 }
               )
             }
@@ -505,8 +505,8 @@ export function parse(tokens: Token[]): Node {
               throw new ParserError(
                 'The only allowed values are a numeric literal and a string literal',
                 {
-                  line: tokens[0].line,
-                  column: tokens[0].column,
+                  start: tokens[0].start,
+                  end: tokens[0].end,
                 }
               )
             }
@@ -518,8 +518,8 @@ export function parse(tokens: Token[]): Node {
               'Enum members must be either an Identifier or ' +
                 'an ExpressionStatement with expression AssignmentExpression',
               {
-                line: tokens[0].line,
-                column: tokens[0].column,
+                start: tokens[0].start,
+                end: tokens[0].end,
               }
             )
           }
@@ -529,8 +529,8 @@ export function parse(tokens: Token[]): Node {
         throw new ParserError(
           `Expected LEFT_BRACE but got ${TokenType[tokens[2].type]}`,
           {
-            line: tokens[2].line,
-            column: tokens[2].column,
+            start: tokens[2].start,
+            end: tokens[2].end,
           }
         )
       }
@@ -575,8 +575,8 @@ export function parse(tokens: Token[]): Node {
               throw new ParserError(
                 `Expected COLON but got ${TokenType[propertiesTokens[1].type]}`,
                 {
-                  line: propertiesTokens[1].line,
-                  column: propertiesTokens[1].column,
+                  start: propertiesTokens[1].start,
+                  end: propertiesTokens[1].end,
                 }
               )
             }
@@ -586,8 +586,8 @@ export function parse(tokens: Token[]): Node {
                 TokenType[propertiesTokens[0].type]
               }`,
               {
-                line: propertiesTokens[0].line,
-                column: propertiesTokens[0].column,
+                start: propertiesTokens[0].start,
+                end: propertiesTokens[0].end,
               }
             )
           }
@@ -645,8 +645,8 @@ export function parse(tokens: Token[]): Node {
             throw new ParserError(
               `Expected start of 'If statement' but got ${elseIf.$type}`,
               {
-                line: tokens[0].line,
-                column: tokens[0].column,
+                start: tokens[0].start,
+                end: tokens[0].end,
               }
             )
           }

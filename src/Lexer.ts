@@ -22,14 +22,9 @@ export function tokenize(file: rd.Interface): Token[] {
 
     const tokens: Token[] = []
     let i = 0
-    let identifier: {
-      line: number
-      column: number
-      type: TokenType
-      value: string
-    } = {
-      line: 0,
-      column: 0,
+    let identifier: Token = {
+      start: { line: 0, column: 0 },
+      end: { line: 0, column: 0 },
       type: TokenType.TOK_LAST,
       value: '',
     }
@@ -43,8 +38,8 @@ export function tokenize(file: rd.Interface): Token[] {
         ) {
           tokens.push(identifier)
           identifier = {
-            line: lineNumber,
-            column: i,
+            start: { line: lineNumber, column: i },
+            end: { line: lineNumber, column: i },
             type: TokenType.TOK_LAST,
             value: '',
           }
@@ -90,8 +85,8 @@ export function tokenize(file: rd.Interface): Token[] {
           i += 1
           let stringValue = ''
           identifier = {
-            line: lineNumber,
-            column: i,
+            start: { line: lineNumber, column: i },
+            end: { line: lineNumber, column: i },
             type: TokenType.STRING,
             value: stringValue,
           }
@@ -99,6 +94,7 @@ export function tokenize(file: rd.Interface): Token[] {
             if (line[i] === "'") {
               literal = false
               identifier.value = stringValue
+              identifier.end.column = i
               tokens.push({ ...identifier })
               identifier.type = TokenType.TOK_LAST
               identifier.value = ''
@@ -156,15 +152,15 @@ export function tokenize(file: rd.Interface): Token[] {
         }
         if (line[i] === '(') {
           tokens.push({
-            line: lineNumber,
-            column: i,
+            start: { line: lineNumber, column: i },
+            end: { line: lineNumber, column: i + 1 },
             type: TokenType.LEFT_PARENTHESIS,
             value: line[i],
           })
         } else if (line[i] === ')') {
           tokens.push({
-            line: lineNumber,
-            column: i,
+            start: { line: lineNumber, column: i },
+            end: { line: lineNumber, column: i + 1 },
             type: TokenType.RIGHT_PARENTHESIS,
             value: line[i],
           })
@@ -185,15 +181,15 @@ export function tokenize(file: rd.Interface): Token[] {
         }
         if (line[i] === '{') {
           tokens.push({
-            line: lineNumber,
-            column: i,
+            start: { line: lineNumber, column: i },
+            end: { line: lineNumber, column: i + 1 },
             type: TokenType.LEFT_BRACE,
             value: line[i],
           })
         } else if (line[i] === '}') {
           tokens.push({
-            line: lineNumber,
-            column: i,
+            start: { line: lineNumber, column: i },
+            end: { line: lineNumber, column: i + 1 },
             type: TokenType.RIGHT_BRACE,
             value: line[i],
           })
@@ -214,15 +210,15 @@ export function tokenize(file: rd.Interface): Token[] {
         }
         if (line[i] === '[') {
           tokens.push({
-            line: lineNumber,
-            column: i,
+            start: { line: lineNumber, column: i },
+            end: { line: lineNumber, column: i + 1 },
             type: TokenType.LEFT_BRACKET,
             value: line[i],
           })
         } else if (line[i] === ']') {
           tokens.push({
-            line: lineNumber,
-            column: i,
+            start: { line: lineNumber, column: i },
+            end: { line: lineNumber, column: i + 1 },
             type: TokenType.RIGHT_BRACKET,
             value: line[i],
           })
@@ -233,8 +229,8 @@ export function tokenize(file: rd.Interface): Token[] {
 
       if (line[i] === '.') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.DOT,
           value: line[i],
         })
@@ -282,8 +278,8 @@ export function tokenize(file: rd.Interface): Token[] {
           localIdentifier += line[i++]
         }
         identifier = {
-          line: lineNumber,
-          column: column,
+          start: { line: lineNumber, column: column },
+          end: { line: lineNumber, column: i },
           type: TokenType.IDENTIFIER,
           value: localIdentifier,
         }
@@ -305,8 +301,8 @@ export function tokenize(file: rd.Interface): Token[] {
 
       if (line[i] === '+' && getNextCharacter(line, i) === '+') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.INCREMENT,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -314,8 +310,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '+' && getNextCharacter(line, i) === '=') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.ADDITION_ASSIGNMENT,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -324,8 +320,8 @@ export function tokenize(file: rd.Interface): Token[] {
       }
       if (line[i] === '+') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.ADDITION,
           value: line[i],
         })
@@ -333,8 +329,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '-' && getNextCharacter(line, i) === '-') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.DECREMENT,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -342,8 +338,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '-' && getNextCharacter(line, i) === '=') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.SUBTRACTION_ASSIGNMENT,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -351,8 +347,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '-') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.SUBTRACTION,
           value: line[i],
         })
@@ -360,8 +356,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '*' && getNextCharacter(line, i) === '=') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.MULTIPLICATION_ASSIGNMENT,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -369,8 +365,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '*') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.MULTIPLICATION,
           value: line[i],
         })
@@ -378,8 +374,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '/' && getNextCharacter(line, i) === '=') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.DIVISION_ASSIGNMENT,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -387,8 +383,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '/') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.DIVISION,
           value: line[i],
         })
@@ -396,8 +392,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '%' && getNextCharacter(line, i) === '=') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.MODULUS_ASSIGNMENT,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -405,8 +401,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '%') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.MODULUS,
           value: line[i],
         })
@@ -414,8 +410,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '^' && getNextCharacter(line, i) === '=') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.POWER_ASSIGNMENT,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -423,8 +419,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '^') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.POWER,
           value: line[i],
         })
@@ -432,8 +428,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '=' && getNextCharacter(line, i) === '=') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.EQUAL,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -441,8 +437,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '=') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.ASSIGNMENT,
           value: line[i],
         })
@@ -450,8 +446,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '>' && getNextCharacter(line, i) === '=') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.GREATER_THAN_OR_EQUAL,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -459,8 +455,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '>') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.GREATER_THAN,
           value: line[i],
         })
@@ -468,8 +464,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '<' && getNextCharacter(line, i) === '=') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.LESS_THAN_OR_EQUAL,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -477,8 +473,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '<') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.LESS_THAN,
           value: line[i],
         })
@@ -486,8 +482,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '!' && getNextCharacter(line, i) === '=') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.NOT_EQUAL,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -495,8 +491,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '!') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.NOT,
           value: line[i],
         })
@@ -504,8 +500,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '&' && getNextCharacter(line, i) === '&') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.AND,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -513,8 +509,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '|' && getNextCharacter(line, i) === '|') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 2 },
           type: TokenType.OR,
           value: line[i] + getNextCharacter(line, i),
         })
@@ -522,8 +518,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '?') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.QUESTION_MARK,
           value: line[i],
         })
@@ -531,8 +527,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === ':') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.COLON,
           value: line[i],
         })
@@ -540,8 +536,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === '.') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.DOT,
           value: line[i],
         })
@@ -549,8 +545,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === ',') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.COMMA,
           value: line[i],
         })
@@ -558,8 +554,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else if (line[i] === ';') {
         tokens.push({
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.SEMI_COLON,
           value: line[i],
         })
@@ -567,8 +563,8 @@ export function tokenize(file: rd.Interface): Token[] {
         continue
       } else {
         identifier = {
-          line: lineNumber,
-          column: i,
+          start: { line: lineNumber, column: i },
+          end: { line: lineNumber, column: i + 1 },
           type: TokenType.OPERATOR,
           value: line[i],
         }
@@ -820,18 +816,19 @@ export function tokenize(file: rd.Interface): Token[] {
 }
 
 function getNumber(data: { line: string; index: number }): {
-  identifier: {
-    line: number
-    column: number
-    type: TokenType
-    value: string
-  }
+  identifier: Token
   outIndex: number
 } {
   let localIndex = data.index
-  const localIdentifier = {
-    line: lineNumber,
-    column: localIndex,
+  const localIdentifier: Token = {
+    start: {
+      line: lineNumber,
+      column: localIndex,
+    },
+    end: {
+      line: lineNumber,
+      column: localIndex,
+    },
     type: TokenType.INTEGER,
     value: '',
   }
@@ -889,8 +886,11 @@ function getNumber(data: { line: string; index: number }): {
     if (!success) {
       return {
         identifier: {
-          line: lineNumber,
-          column: localIndex,
+          start: localIdentifier.start,
+          end: {
+            line: lineNumber,
+            column: localIndex,
+          },
           type: TokenType.TOK_LAST,
           value: '',
         },
@@ -898,6 +898,7 @@ function getNumber(data: { line: string; index: number }): {
       }
     }
     localIdentifier.value += c
+    localIdentifier.end.column += 1
     localIndex += 1
   }
   return { identifier: localIdentifier, outIndex: localIndex }
