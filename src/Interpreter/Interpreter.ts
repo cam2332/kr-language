@@ -131,7 +131,7 @@ export default class Interpreter {
         }
 
         const callResult = callee.call(this, args)
-        if (callResult instanceof Object) {
+        if (callResult) {
           return callResult
         } else {
           return undefined as unknown as Object

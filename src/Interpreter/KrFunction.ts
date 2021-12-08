@@ -44,9 +44,7 @@ export default class KrFunction implements KrCallable {
           this.declaration.returnStatement.argument,
           environment
         )
-        if (result instanceof Object) {
-          return result
-        }
+        return result
       }
     } catch (error) {
       throw new InterpreterError(
