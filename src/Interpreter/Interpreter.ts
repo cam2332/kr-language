@@ -109,6 +109,14 @@ export default class Interpreter {
     }
   }
 
+
+  private checkNumberOperand(operand: Object): void {
+    if (typeof operand === 'number') {
+      return
+    }
+    // TODO: add position to error when you add it to Node classes
+    throw new InterpreterError('Operand must be a number.')
+  }
   private isKrCallable(arg: any): arg is KrCallable {
     return (
       arg &&
