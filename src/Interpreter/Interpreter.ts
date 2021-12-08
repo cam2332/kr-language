@@ -176,6 +176,16 @@ export default class Interpreter {
     }
   }
 
+  executeBlock(statements: Node[], environment: Environment): void {
+    const previous: Environment = this.environment
+    try {
+      this.environment = environment
+
+      statements.forEach((statement) => this.execute(statement))
+    } finally {
+      this.environment = previous
+    }
+  }
 
   private checkNumberOperand(operand: Object): void {
     if (typeof operand === 'number') {
