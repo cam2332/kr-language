@@ -5,6 +5,7 @@ import Node from '../AST/Node'
 import VariableDeclaration from '../AST/VariableDeclaration'
 import VariableDeclarator from '../AST/VariableDeclarator'
 import Identifier from '../AST/Identifier'
+import UnaryExpression from '../AST/UnaryExpression'
 import NumericLiteral from '../AST/NumericLiteral'
 import BooleanLiteral from '../AST/BooleanLiteral'
 import KrFunction from './KrFunction'
@@ -30,6 +31,19 @@ export default class Interpreter {
     switch (node.$type) {
       case 'Identifier': {
         return this.environment.get((node as Identifier).value)
+      }
+      case 'UnaryExpression': {
+        const unaryExpression = node as UnaryExpression,
+          right = this.evaluate(unaryExpression.right)
+        switch (unaryExpression.operator) {
+          case '-': {
+            this.checkNumberOperand(right)
+            return -right
+          }
+          case '!': {
+            return !this.isTruthy(right)
+          }
+        }
       }
       case 'NumericLiteral': {
         return (node as NumericLiteral).value
