@@ -1,4 +1,5 @@
 import Environment from './Environment'
+import InterpreterError from './InterpreterError'
 import KrCallable from './KrCallable'
 import Node from '../AST/Node'
 import VariableDeclaration from '../AST/VariableDeclaration'
@@ -6,6 +7,7 @@ import VariableDeclarator from '../AST/VariableDeclarator'
 import Identifier from '../AST/Identifier'
 import KrFunction from './KrFunction'
 import FunctionDeclaration from '../AST/FunctionDeclaration'
+import CallExpression from '../AST/CallExpression'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
@@ -22,6 +24,36 @@ export default class Interpreter {
   }
 
   private evaluate(node: Node): Object {
+      case 'CallExpression': {
+        const callExpression = node as CallExpression,
+          callee = this.environment.get(callExpression.callee.value),
+          args: Object[] = []
+
+        callExpression.args.forEach((argument) => {
+          args.push(this.evaluate(argument))
+        })
+
+        if (!this.isKrCallable(callee)) {
+          throw new InterpreterError('Can only call functions and classes.')
+        }
+
+        if (args.length !== callee.arity()) {
+          throw new InterpreterError(
+            'Expected ' +
+              callee.arity() +
+              ' arguments but got ' +
+              args.length +
+              '.'
+          )
+        }
+
+        const callResult = callee.call(this, args)
+        if (callResult instanceof Object) {
+          return callResult
+        } else {
+          return undefined as unknown as Object
+        }
+      }
   }
 
   private execute(node: Node): void {
