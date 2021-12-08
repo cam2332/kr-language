@@ -149,6 +149,18 @@ export default class Interpreter {
     }
     return true
   }
+
+  private isEqual(a: Object, b: Object): boolean {
+    if ((a === null && b === null) || (a === undefined && b === undefined)) {
+      return true
+    }
+    if (a === null || a === undefined) {
+      return false
+    }
+
+    return a === b
+  }
+
   private isKrCallable(arg: any): arg is KrCallable {
     return (
       arg &&
