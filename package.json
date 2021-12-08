@@ -4,8 +4,8 @@
   "description": "My language",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon -x ts-node src/index.ts",
     "test": "mocha -r ts-node/register 'test/**/*.ts'",
+    "dev": "nodemon --watch src --watch resources -e ts,kr -x ts-node src/index.ts",
     "coverage": "nyc npm run test"
   },
   "author": "cam2332",
@@ -22,6 +22,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
     "mocha": "^8.3.1",
+    "nodemon": "^2.0.15",
     "nyc": "^15.1.0",
     "prettier": "^2.3.2",
     "ts-node": "^9.1.1",
