@@ -49,6 +49,9 @@ export default class Interpreter {
         this.environment.define(functionDeclaration.name.value, func)
         break
       }
+      case 'CallExpression': {
+        this.evaluate(node as CallExpression)
+      }
     }
   }
 }
