@@ -5,9 +5,12 @@ import Node from '../AST/Node'
 import VariableDeclaration from '../AST/VariableDeclaration'
 import VariableDeclarator from '../AST/VariableDeclarator'
 import Identifier from '../AST/Identifier'
+import NumericLiteral from '../AST/NumericLiteral'
+import BooleanLiteral from '../AST/BooleanLiteral'
 import KrFunction from './KrFunction'
 import FunctionDeclaration from '../AST/FunctionDeclaration'
 import CallExpression from '../AST/CallExpression'
+import StringLiteral from '../AST/StringLiteral'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
@@ -24,6 +27,15 @@ export default class Interpreter {
   }
 
   private evaluate(node: Node): Object {
+      case 'NumericLiteral': {
+        return (node as NumericLiteral).value
+      }
+      case 'BooleanLiteral': {
+        return (node as BooleanLiteral).value
+      }
+      case 'StringLiteral': {
+        return (node as StringLiteral).value
+      }
       case 'CallExpression': {
         const callExpression = node as CallExpression,
           callee = this.environment.get(callExpression.callee.value),
