@@ -1,7 +1,8 @@
+import Identifier from './Identifier'
 import Node from './Node'
 
 export default class CallExpression extends Node {
-  constructor(public callee: Node, public args: Node[]) {
+  constructor(public callee: Identifier, public args: Node[]) {
     super()
     this.$type = 'CallExpression'
   }
