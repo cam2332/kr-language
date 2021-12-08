@@ -8,6 +8,7 @@ import Identifier from '../AST/Identifier'
 import UnaryExpression from '../AST/UnaryExpression'
 import NumericLiteral from '../AST/NumericLiteral'
 import BooleanLiteral from '../AST/BooleanLiteral'
+import BinaryExpression from '../AST/BinaryExpression'
 import KrFunction from './KrFunction'
 import FunctionDeclaration from '../AST/FunctionDeclaration'
 import CallExpression from '../AST/CallExpression'
@@ -42,6 +43,58 @@ export default class Interpreter {
           }
           case '!': {
             return !this.isTruthy(right)
+          }
+        }
+      }
+      case 'BinaryExpression': {
+        const binaryExpression = node as BinaryExpression,
+          left = this.evaluate(binaryExpression.left),
+          right = this.evaluate(binaryExpression.right)
+
+        switch (binaryExpression.operator) {
+          case '!=': {
+            return !this.isEqual(left, right)
+          }
+          case '==': {
+            return this.isEqual(left, right)
+          }
+          case '>': {
+            this.checkNumberOperands(left, right)
+            return left > right
+          }
+          case '>=': {
+            this.checkNumberOperands(left, right)
+            return left >= right
+          }
+          case '<': {
+            this.checkNumberOperands(left, right)
+            return left < right
+          }
+          case '<=': {
+            this.checkNumberOperands(left, right)
+            return left <= right
+          }
+          case '-': {
+            this.checkNumberOperands(left, right)
+            return (left as number) - (right as number)
+          }
+          case '+': {
+            if (typeof left === 'number' && typeof right === 'number') {
+              return left + right
+            }
+            if (typeof left === 'string' && typeof right === 'string') {
+              return left + right
+            }
+            // TODO: add position to error when you add it to Node classes
+            throw new InterpreterError('Operands must be strings or numbers.')
+          }
+          case '/': {
+            this.checkNumberOperands(left, right)
+            return (left as number) / (right as number)
+          }
+          case '*': {
+            this.checkNumberOperands(left, right)
+            return (left as number) * (right as number)
           }
         }
       }
