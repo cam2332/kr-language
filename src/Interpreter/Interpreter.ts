@@ -1,4 +1,5 @@
 import Environment from './Environment'
+import KrCallable from './KrCallable'
 import Node from '../AST/Node'
 import VariableDeclaration from '../AST/VariableDeclaration'
 import VariableDeclarator from '../AST/VariableDeclarator'
@@ -53,5 +54,15 @@ export default class Interpreter {
         this.evaluate(node as CallExpression)
       }
     }
+  }
+
+  private isKrCallable(arg: any): arg is KrCallable {
+    return (
+      arg &&
+      arg.arity &&
+      typeof arg.arity === 'function' &&
+      arg.call &&
+      typeof arg.call === 'function'
+    )
   }
 }
