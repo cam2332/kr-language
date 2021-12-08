@@ -117,6 +117,16 @@ export default class Interpreter {
     // TODO: add position to error when you add it to Node classes
     throw new InterpreterError('Operand must be a number.')
   }
+
+  private isTruthy(object: Object): boolean {
+    if (!object) {
+      return false
+    }
+    if (typeof object === 'boolean') {
+      return object
+    }
+    return true
+  }
   private isKrCallable(arg: any): arg is KrCallable {
     return (
       arg &&
