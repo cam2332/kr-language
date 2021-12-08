@@ -187,6 +187,22 @@ export default class Interpreter {
     }
   }
 
+  evaluateReturnStatement(
+    statement: Node,
+    environment: Environment
+  ): Object | undefined {
+    const previous: Environment = this.environment
+    try {
+      this.environment = environment
+
+      const result = this.evaluate(statement)
+      this.environment = previous
+      return result
+    } finally {
+      this.environment = previous
+    }
+  }
+
   private checkNumberOperand(operand: Object): void {
     if (typeof operand === 'number') {
       return
