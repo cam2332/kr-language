@@ -13,11 +13,21 @@ import KrFunction from './KrFunction'
 import FunctionDeclaration from '../AST/FunctionDeclaration'
 import CallExpression from '../AST/CallExpression'
 import StringLiteral from '../AST/StringLiteral'
+import NativeKrFunction from './NativeKrFunctions'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
   private environment: Environment = this.globals
   constructor() {
+    const nativePrintFunction: NativeKrFunction = new NativeKrFunction(
+      new Identifier('print'),
+      [new Identifier('text')],
+      (args) => {
+        console.log(args[0])
+      },
+      this.environment
+    )
+    this.globals.define('print', nativePrintFunction)
   }
 
   interpret(nodes: Node[]): void {
