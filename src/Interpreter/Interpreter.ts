@@ -132,6 +132,14 @@ export default class Interpreter {
     throw new InterpreterError('Operand must be a number.')
   }
 
+  private checkNumberOperands(left: Object, right: Object): void {
+    if (typeof left === 'number' && typeof right === 'number') {
+      return
+    }
+    // TODO: add position to error when you add it to Node classes
+    throw new InterpreterError('Operands must be a numbers.')
+  }
+
   private isTruthy(object: Object): boolean {
     if (!object) {
       return false
