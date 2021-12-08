@@ -27,6 +27,7 @@ export default class Interpreter {
   }
 
   private evaluate(node: Node): Object {
+    switch (node.$type) {
       case 'NumericLiteral': {
         return (node as NumericLiteral).value
       }
@@ -66,6 +67,11 @@ export default class Interpreter {
           return undefined as unknown as Object
         }
       }
+      default: {
+        // TODO: add position to error when you add it to Node classes
+        throw new InterpreterError('Unexpected expression')
+      }
+    }
   }
 
   private execute(node: Node): void {
