@@ -3,6 +3,8 @@ import Node from '../AST/Node'
 import VariableDeclaration from '../AST/VariableDeclaration'
 import VariableDeclarator from '../AST/VariableDeclarator'
 import Identifier from '../AST/Identifier'
+import KrFunction from './KrFunction'
+import FunctionDeclaration from '../AST/FunctionDeclaration'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
@@ -35,6 +37,16 @@ export default class Interpreter {
           name = (variableDeclarator.name as Identifier).value,
           value: Object = this.evaluate(variableDeclarator.init)
         this.environment.define(name, value)
+        break
+      }
+      case 'FunctionDeclaration': {
+        const functionDeclaration = node as FunctionDeclaration
+        const func: KrFunction = new KrFunction(
+          functionDeclaration,
+          this.environment,
+          false
+        )
+        this.environment.define(functionDeclaration.name.value, func)
         break
       }
     }
