@@ -28,6 +28,9 @@ export default class Interpreter {
 
   private evaluate(node: Node): Object {
     switch (node.$type) {
+      case 'Identifier': {
+        return this.environment.get((node as Identifier).value)
+      }
       case 'NumericLiteral': {
         return (node as NumericLiteral).value
       }
