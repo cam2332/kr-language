@@ -99,9 +99,7 @@ export function parse(tokens: Token[]): Node {
 
       tokens.splice(0, 3)
 
-      return new VariableDeclaration(kind, [
-        new VariableDeclarator(identifier, parse(tokens)),
-      ])
+      return new VariableDeclaration(kind, identifier, parse(tokens))
     } else if (
       tokens[0].type === TokenType.INTEGER ||
       tokens[0].type === TokenType.FLOAT

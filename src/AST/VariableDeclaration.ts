@@ -1,12 +1,13 @@
+import Identifier from './Identifier'
 import Node from './Node'
-import VariableDeclarator from './VariableDeclarator'
 
 export type VariableKind = 'const' | 'let'
 
 export default class VariableDeclaration extends Node {
   constructor(
     public kind: VariableKind,
-    public declarations: VariableDeclarator[] = []
+    public name: Identifier,
+    public init: Node
   ) {
     super()
     this.$type = 'VariableDeclaration'
@@ -16,7 +17,8 @@ export default class VariableDeclaration extends Node {
     return {
       VariableDeclaration: {
         kind: this.kind,
-        declarations: this.declarations,
+        name: this.name,
+        init: this.init,
       },
     }
   }

@@ -3,7 +3,6 @@ import InterpreterError from './InterpreterError'
 import KrCallable from './KrCallable'
 import Node from '../AST/Node'
 import VariableDeclaration from '../AST/VariableDeclaration'
-import VariableDeclarator from '../AST/VariableDeclarator'
 import Identifier from '../AST/Identifier'
 import UnaryExpression from '../AST/UnaryExpression'
 import NumericLiteral from '../AST/NumericLiteral'
@@ -161,16 +160,9 @@ export default class Interpreter {
   private execute(node: Node): void {
     switch (node.$type) {
       case 'VariableDeclaration': {
-        const variableDeclaration = node as VariableDeclaration
-        variableDeclaration.declarations.forEach((declaration) => {
-          this.execute(declaration)
-        })
-        break
-      }
-      case 'VariableDeclarator': {
-        const variableDeclarator = node as VariableDeclarator,
-          name = (variableDeclarator.name as Identifier).value,
-          value: Object = this.evaluate(variableDeclarator.init)
+        const variableDeclaration = node as VariableDeclaration,
+          name = (variableDeclaration.name as Identifier).value,
+          value: Object = this.evaluate(variableDeclaration.init)
         this.environment.define(name, value)
         break
       }
