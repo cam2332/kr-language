@@ -14,6 +14,7 @@ import FunctionDeclaration from '../AST/FunctionDeclaration'
 import CallExpression from '../AST/CallExpression'
 import StringLiteral from '../AST/StringLiteral'
 import NativeKrFunction from './NativeKrFunctions'
+import ParenthesisStatement from '../AST/ParenthesisStatement'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
@@ -146,6 +147,9 @@ export default class Interpreter {
         } else {
           return undefined as unknown as Object
         }
+      }
+      case 'ParenthesisStatement': {
+        return this.evaluate((node as ParenthesisStatement).body)
       }
       default: {
         // TODO: add position to error when you add it to Node classes
