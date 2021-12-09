@@ -243,7 +243,6 @@ export function parse(tokens: Token[]): Node {
         return identifier
       }
     } else if (tokens[0].type === TokenType.LEFT_PARENTHESIS) {
-      const body = []
       tokens.splice(0, 1)
       let i = 0
       let leftParenthesis = 1
@@ -259,21 +258,13 @@ export function parse(tokens: Token[]): Node {
       const bodyTokens = tokens.splice(0, i)
       bodyTokens.pop()
 
-      let node
-      while (bodyTokens.length > 0) {
-        try {
-          node = parse(bodyTokens)
-        } catch (err) {
-          console.log(err)
-          break
-        }
-        body.push(node)
-      }
-
       if (isOperator(tokens[0])) {
-        return operatorPrecedence(tokens, new ParenthesisStatement(body))
+        return operatorPrecedence(
+          tokens,
+          new ParenthesisStatement(parse(bodyTokens))
+        )
       } else {
-        return new ParenthesisStatement(body)
+        return new ParenthesisStatement(parse(bodyTokens))
       }
     } else if (tokens[0].type === TokenType.FUNCTION) {
       if (tokens[1].type !== TokenType.IDENTIFIER) {
