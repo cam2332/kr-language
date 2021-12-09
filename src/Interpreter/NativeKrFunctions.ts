@@ -36,9 +36,7 @@ export default class NativeKrFunction implements KrCallable {
 
     try {
       const result = this.body(args)
-      if (result instanceof Object) {
-        return result
-      }
+      return result
     } catch (error) {
       throw new InterpreterError(
         "Unexpected error while executing native function '" +
