@@ -3,6 +3,7 @@ import * as rd from 'readline'
 import { TokenType } from './TokenType'
 import { tokenize } from './Lexer'
 import { mainParse } from './Parser'
+import Interpreter from './Interpreter/Interpreter'
 
 const args = process.argv.slice(2)
 
@@ -50,6 +51,9 @@ reader.on('close', () => {
   }
 
   const program = mainParse(tokens)
+
+  const interpreter: Interpreter = new Interpreter()
+  interpreter.interpret(program.body)
 
   try {
     fs.writeFileSync(
