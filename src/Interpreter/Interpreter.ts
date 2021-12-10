@@ -130,15 +130,7 @@ export default class Interpreter {
           throw new InterpreterError('Can only call functions and classes.')
         }
 
-        if (args.length !== callee.arity()) {
-          throw new InterpreterError(
-            'Expected ' +
-              callee.arity() +
-              ' arguments but got ' +
-              args.length +
-              '.'
-          )
-        }
+        this.checkArity(args, callee)
 
         const callResult = callee.call(this, args)
         if (callResult) {
