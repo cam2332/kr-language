@@ -262,4 +262,11 @@ export default class Interpreter {
     }
     return
   }
+
+  private stringify(object: Object): string {
+    if (!object) {
+      return 'null'
+    }
+    return object.toString()
+  }
 }
