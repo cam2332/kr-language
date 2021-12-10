@@ -9,6 +9,7 @@ const BRACKETS_REGEX = new RegExp('[\\[\\]]')
 const NUMERIC_REGEX = new RegExp('[0-9.]')
 const DIGITS_REGEX = new RegExp('[0-9]')
 const ALPHANUMERIC_REGEX = new RegExp('[A-Za-z0-9]')
+const ALPHANUMERIC_WHITESPACE_REGEX = new RegExp('[A-Za-z0-9(\\s*)]')
 
 let lineNumber = 0
 
@@ -100,7 +101,7 @@ export function tokenize(file: rd.Interface): Token[] {
               identifier.value = ''
               i += 1
               break
-            } else if (!ALPHANUMERIC_REGEX.test(line[i])) {
+            } else if (!ALPHANUMERIC_WHITESPACE_REGEX.test(line[i])) {
               throw new Error(
                 'Encountered invalid character in string literal. Line ' +
                   lineNumber +
