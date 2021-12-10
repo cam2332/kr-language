@@ -95,6 +95,12 @@ export default class Interpreter {
             if (typeof left === 'string' && typeof right === 'string') {
               return left + right
             }
+            if (typeof left === 'string' && typeof right === 'number') {
+              return left + this.stringify(right)
+            }
+            if (typeof left === 'string' && typeof right === 'boolean') {
+              return left + this.stringify(right)
+            }
             // TODO: add position to error when you add it to Node classes
             throw new InterpreterError('Operands must be strings or numbers.')
           }
