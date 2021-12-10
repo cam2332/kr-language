@@ -255,4 +255,19 @@ export default class Interpreter {
       typeof arg.call === 'function'
     )
   }
+
+  private checkArity(args: Object[], callee: KrCallable): void {
+    if (args.length !== callee.arity()) {
+      throw new InterpreterError(
+        'Expected ' +
+          callee.arity() +
+          ' argument' +
+          (callee.arity() > 1 ? 's' : '') +
+          ' but got ' +
+          args.length +
+          '.'
+      )
+    }
+    return
+  }
 }
