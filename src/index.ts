@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as rd from 'readline'
 import { TokenType } from './types/TokenType'
 import { tokenize } from './Lexer'
-import { mainParse } from './Parser'
+import { mainParse } from './Parser/Parser'
 import Interpreter from './Interpreter/Interpreter'
 
 const args = process.argv.slice(2)

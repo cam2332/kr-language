@@ -1,4 +1,4 @@
-import Token from './types/Token'
+import Token from '../types/Token'
 import {
   isOperator,
   isAssignOperator,
@@ -7,32 +7,32 @@ import {
   compareOperatorPriority,
   isUnaryOperator,
   isBooleanLiteral,
-} from './types/TokenType'
-import Node from './AST/Node'
-import Identifier from './AST/Identifier'
-import Program from './AST/Program'
-import VariableDeclaration, { VariableKind } from './AST/VariableDeclaration'
-import NumericLiteral from './AST/NumericLiteral'
-import BinaryExpression from './AST/BinaryExpression'
-import CallExpression from './AST/CallExpression'
-import ParserError from './types/errors/ParserError'
-import ExpressionStatement from './AST/ExpressionStatement'
-import AssignmentExpression from './AST/AssignmentExpression'
-import FunctionDeclaration from './AST/FunctionDeclaration'
-import BlockStatement from './AST/BlockStatement'
-import ParenthesisStatement from './AST/ParenthesisStatement'
-import ReturnStatement from './AST/ReturnStatement'
-import ArrayExpression from './AST/ArrayExpression'
-import MemberExpression from './AST/MemberExpression'
-import StringLiteral from './AST/StringLiteral'
-import EnumDeclaration from './AST/EnumDeclaration'
-import EnumMember from './AST/EnumMember'
-import ObjectProperty from './AST/ObjectProperty'
-import ObjectExpression from './AST/ObjectExpression'
-import IfStatement from './AST/IfStatement'
+} from '../types/TokenType'
+import Node from '../AST/Node'
+import Identifier from '../AST/Identifier'
+import Program from '../AST/Program'
+import VariableDeclaration, { VariableKind } from '../AST/VariableDeclaration'
+import NumericLiteral from '../AST/NumericLiteral'
+import BinaryExpression from '../AST/BinaryExpression'
+import CallExpression from '../AST/CallExpression'
+import ParserError from './errors/ParserError'
+import ExpressionStatement from '../AST/ExpressionStatement'
+import AssignmentExpression from '../AST/AssignmentExpression'
+import FunctionDeclaration from '../AST/FunctionDeclaration'
+import BlockStatement from '../AST/BlockStatement'
+import ParenthesisStatement from '../AST/ParenthesisStatement'
+import ReturnStatement from '../AST/ReturnStatement'
+import ArrayExpression from '../AST/ArrayExpression'
+import MemberExpression from '../AST/MemberExpression'
+import StringLiteral from '../AST/StringLiteral'
+import EnumDeclaration from '../AST/EnumDeclaration'
+import EnumMember from '../AST/EnumMember'
+import ObjectProperty from '../AST/ObjectProperty'
+import ObjectExpression from '../AST/ObjectExpression'
+import IfStatement from '../AST/IfStatement'
 import { getTokensBetweenTokens } from './utils/ParserUtils'
-import UnaryExpression from './AST/UnaryExpression'
-import BooleanLiteral from './AST/BooleanLiteral'
+import UnaryExpression from '../AST/UnaryExpression'
+import BooleanLiteral from '../AST/BooleanLiteral'
 
 export function mainParse(tokens: Token[]): Program {
   const nodes: Node[] = []
@@ -169,6 +169,14 @@ export function parse(tokens: Token[]): Node {
         }
         if (tokens.length > 0 && isOperator(tokens[0])) {
           return operatorPrecedence(tokens, new CallExpression(callee, args))
+        }
+        // @ts-ignore
+        if (tokens.length > 0 && tokens[0].type === TokenType.DOT) {
+          tokens.splice(0, 1)
+          return new MemberExpression(
+            new CallExpression(callee, args),
+            parse(tokens)
+          )
         }
         return new CallExpression(callee, args)
       } else if (tokens.length > 1 && isOperator(tokens[1])) {
@@ -568,6 +576,12 @@ export function parse(tokens: Token[]): Node {
                 }
               )
             }
+            // if (properties.findIndex((property) => property.key.value === propertyKey.value) !== -1) {
+            //   throw new ParserError(
+            //     'An ObjectExpression cannot have multiple properties with the same name.',
+            //     propertyKey.position
+            //   )
+            // }
           } else {
             throw new ParserError(
               `Expected IDENTIFIER but got ${
@@ -673,7 +687,22 @@ export function parse(tokens: Token[]): Node {
         )
       }
     }
-  throw new Error('End')
+    // else if (tokens[0].type === TokenType.CLASS) {
+
+    // }
+  }
+
+  console.log(tokens.length, tokens.slice(0, 10))
+  throw new ParserError(`End of useable tokens`, {
+    start: {
+      line: -2,
+      column: -2,
+    },
+    end: {
+      line: -2,
+      column: -2,
+    },
+  })
   return new Node()
 }
 
@@ -701,4 +730,67 @@ function operatorPrecedence(tokens: Token[], leftArg: Node): BinaryExpression {
     )
   }
   return new BinaryExpression(leftArg, operator, rightBinaryNode)
+}
+
+// function typeCheck(program: Program): Program {
+
+// }
+
+function expectToken(
+  target: TokenType,
+  value: Token,
+  onExpected?: () => void,
+  onNotExpected?: () => void
+): void {
+  if (!value || value.type !== target) {
+    return onNotExpected && onNotExpected()
+  } else {
+    return onExpected && onExpected()
+  }
+}
+
+function expectOptionalToken(target: TokenType, value: Token): boolean {
+  if (!value || value.type !== target) {
+    return false
+  } else {
+    return true
+  }
+}
+
+function expectOneOfTokens(target: TokenType[], value: Token): number {
+  if (target.length > 0) {
+    for (let index = 0; index < target.length; index++) {
+      const element = target[index]
+      if (element === value.type) {
+        return index
+      }
+    }
+    throw new ParserError(
+      `Expected one of '${target.map(
+        (tokenType) => TokenType[tokenType]
+      )}' but got ${TokenType[value.type]}`,
+      {
+        start: value.start,
+        end: value.end,
+      }
+    )
+  } else {
+    throw new ParserError(`Expected nothing but got ${TokenType[value.type]}`, {
+      start: value.start,
+      end: value.end,
+    })
+  }
+}
+function expectOptionalOneOfTokens(target: TokenType[], value: Token): number {
+  if (target.length > 0) {
+    for (let index = 0; index < target.length; index++) {
+      const element = target[index]
+      if (element === value.type) {
+        return index
+      }
+    }
+    return -1
+  } else {
+    return -1
+  }
 }

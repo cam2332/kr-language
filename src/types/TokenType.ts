@@ -1,4 +1,4 @@
-import ParserError from './errors/ParserError'
+import ParserError from '../Parser/errors/ParserError'
 import Token from './Token'
 
 export enum TokenType {
