@@ -1,8 +1,12 @@
+import CallExpression from './CallExpression'
 import Identifier from './Identifier'
 import Node from './Node'
 
 export default class MemberExpression extends Node {
-  constructor(public object: Identifier, public property: Node) {
+  constructor(
+    public object: Identifier | MemberExpression | CallExpression,
+    public property: Identifier | MemberExpression | CallExpression
+  ) {
     super()
     this.$type = 'MemberExpression'
   }
