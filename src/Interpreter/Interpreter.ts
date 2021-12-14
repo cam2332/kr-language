@@ -1,5 +1,5 @@
 import Environment from './Environment'
-import InterpreterError from './InterpreterError'
+import InterpreterError from './errors/InterpreterError'
 import KrCallable from './KrCallable'
 import Node from '../AST/Node'
 import VariableDeclaration from '../AST/VariableDeclaration'

@@ -1,4 +1,4 @@
-import InterpreterError from './InterpreterError'
+import InterpreterError from './errors/InterpreterError'
 
 export default class Environment {
   enclosing: Environment | undefined

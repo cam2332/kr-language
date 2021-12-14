@@ -1,7 +1,7 @@
 import Identifier from '../AST/Identifier'
 import Environment from './Environment'
 import Interpreter from './Interpreter'
-import InterpreterError from './InterpreterError'
+import InterpreterError from './errors/InterpreterError'
 import KrCallable from './KrCallable'
 
 export default class NativeKrFunction implements KrCallable {
