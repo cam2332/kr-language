@@ -14,14 +14,15 @@ import CallExpression from '../AST/CallExpression'
 import StringLiteral from '../AST/StringLiteral'
 import NativeKrFunction from './NativeKrFunctions'
 import ParenthesisStatement from '../AST/ParenthesisStatement'
+import { initMinusOne } from '../types/Position'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
   private environment: Environment = this.globals
   constructor() {
     const nativePrintFunction: NativeKrFunction = new NativeKrFunction(
-      new Identifier('print'),
-      [new Identifier('text')],
+      new Identifier('print', 'void', initMinusOne()),
+      [new Identifier('text', 'string', initMinusOne())],
       (args) => {
         console.log(args[0])
       },

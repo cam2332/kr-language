@@ -33,6 +33,7 @@ import IfStatement from '../AST/IfStatement'
 import { getTokensBetweenTokens } from './utils/ParserUtils'
 import UnaryExpression from '../AST/UnaryExpression'
 import BooleanLiteral from '../AST/BooleanLiteral'
+import Position, { initMinusOne } from '../types/Position'
 
 export function mainParse(tokens: Token[]): Program {
   const nodes: Node[] = []
@@ -47,7 +48,12 @@ export function mainParse(tokens: Token[]): Program {
     }
     nodes.push(node)
   }
-  return new Program(nodes)
+  const programPosition = initMinusOne()
+  if (nodes.length > 0) {
+    programPosition.start = nodes[0].$position.start
+    programPosition.end = nodes[nodes.length - 1].$position.end
+  }
+  return new Program(nodes, programPosition)
 }
 
 export function parse(tokens: Token[]): Node {
@@ -57,48 +63,55 @@ export function parse(tokens: Token[]): Node {
       tokens[0].type === TokenType.LET
     ) {
       const kind = tokens[0].value as VariableKind
+      const varDeclStartPosition = tokens[0].position.start
+
       if (tokens[1].type !== TokenType.IDENTIFIER) {
         throw new ParserError(
           `Expected IDENTIFIER but got ${TokenType[tokens[1].type]}`,
-          {
-            start: tokens[1].start,
-            end: tokens[1].end,
-          }
+          tokens[1].position
         )
       }
-      const identifier = new Identifier(tokens[1].value)
+
+      const identifier = new Identifier(
+        tokens[1].value,
+        'any',
+        tokens[1].position
+      )
+
       if (tokens[2].type === TokenType.COLON) {
         if (
           tokens[3].type === TokenType.IDENTIFIER ||
           isPrimitiveType(tokens[3])
         ) {
           identifier.typeAnnotation = tokens[3].value
+          identifier.$position.end = tokens[3].position.end
           tokens.splice(0, 2)
         } else {
           throw new ParserError(
             `Expected IDENTIFIER or PRIMITIVE_TYPE (Integer, Float, String) but got ${
               TokenType[tokens[3].type]
             }`,
-            {
-              start: tokens[3].start,
-              end: tokens[3].end,
-            }
+            tokens[3].position
           )
         }
       }
       if (tokens[2].type !== TokenType.ASSIGNMENT) {
         throw new ParserError(
           `Expected ASSIGNMENT '=' but got ${TokenType[tokens[2].type]}`,
-          {
-            start: tokens[2].start,
-            end: tokens[2].end,
-          }
+          tokens[2].position
         )
       }
 
       tokens.splice(0, 3)
 
-      return new VariableDeclaration(kind, identifier, parse(tokens))
+      const init: Node = parse(tokens)
+
+      const varDeclPosition: Position = {
+        start: varDeclStartPosition,
+        end: init.$position.end,
+      }
+
+      return new VariableDeclaration(kind, identifier, init, varDeclPosition)
     } else if (
       tokens[0].type === TokenType.INTEGER ||
       tokens[0].type === TokenType.FLOAT
@@ -106,7 +119,8 @@ export function parse(tokens: Token[]): Node {
       const left = new NumericLiteral(
         tokens[0].type === TokenType.INTEGER
           ? parseInt(tokens[0].value)
-          : parseFloat(tokens[0].value)
+          : parseFloat(tokens[0].value),
+        tokens[0].position
       )
       tokens.splice(0, 1)
       if (tokens.length > 0 && isOperator(tokens[0])) {
@@ -115,7 +129,7 @@ export function parse(tokens: Token[]): Node {
         return left
       }
     } else if (tokens[0].type === TokenType.STRING) {
-      const left = new StringLiteral(tokens[0].value)
+      const left = new StringLiteral(tokens[0].value, tokens[0].position)
       tokens.splice(0, 1)
       if (tokens.length > 0 && isOperator(tokens[0])) {
         return operatorPrecedence(tokens, left)
@@ -123,18 +137,28 @@ export function parse(tokens: Token[]): Node {
         return left
       }
     } else if (isUnaryOperator(tokens[0])) {
-      const operator = tokens[0].value
+      const operatorToken = tokens[0]
       tokens.splice(0, 1)
-      return new UnaryExpression(operator, parse(tokens))
+      const right = parse(tokens)
+      return new UnaryExpression(
+        operatorToken.value,
+        right,
+        operatorToken.position
+      )
     } else if (isBooleanLiteral(tokens[0])) {
-      const value = tokens[0].value === 'true'
+      const valueToken = tokens[0]
       tokens.splice(0, 1)
-      return new BooleanLiteral(value)
+      return new BooleanLiteral(
+        valueToken.value === 'true',
+        valueToken.position
+      )
     } else if (tokens[0].type === TokenType.IDENTIFIER) {
-      const callee = new Identifier(tokens[0].value)
+      const callee = new Identifier(tokens[0].value, 'any', tokens[0].position)
+      let exprPosition = callee.$position
       if (tokens.length > 1 && tokens[1].type === TokenType.LEFT_PARENTHESIS) {
         const args = []
         if (tokens[2].type === TokenType.RIGHT_PARENTHESIS) {
+          exprPosition.end = tokens[2].position.end
           tokens.splice(0, 3)
         } else {
           tokens.splice(0, 2)
@@ -151,7 +175,10 @@ export function parse(tokens: Token[]): Node {
             i += 1
           }
           const argsTokens = tokens.splice(0, i)
-          argsTokens.pop()
+          const callExprLastToken = argsTokens.pop()
+          if (callExprLastToken) {
+            exprPosition.end = callExprLastToken.position.end
+          }
 
           let node
           while (argsTokens.length > 0) {
@@ -168,25 +195,52 @@ export function parse(tokens: Token[]): Node {
           }
         }
         if (tokens.length > 0 && isOperator(tokens[0])) {
-          return operatorPrecedence(tokens, new CallExpression(callee, args))
+          return operatorPrecedence(
+            tokens,
+            new CallExpression(callee, args, exprPosition)
+          )
         }
         // @ts-ignore
         if (tokens.length > 0 && tokens[0].type === TokenType.DOT) {
           tokens.splice(0, 1)
+          const property = parse(tokens)
+          if (
+            property.$type === 'Identifier' ||
+            property.$type === 'MemberExpression' ||
+            property.$type === 'CallExpression'
+          ) {
+            throw new ParserError(
+              "MemberExpression's property must be a member expression, call expression or an identifier",
+              property.$position
+            )
+          }
+          const memberExprPosition = {
+            start: exprPosition.start,
+            end: property.$position.end,
+          }
           return new MemberExpression(
-            new CallExpression(callee, args),
-            parse(tokens)
+            new CallExpression(callee, args, exprPosition),
+            property as Identifier | MemberExpression | CallExpression,
+            memberExprPosition
           )
         }
-        return new CallExpression(callee, args)
+        return new CallExpression(callee, args, exprPosition)
       } else if (tokens.length > 1 && isOperator(tokens[1])) {
         tokens.splice(0, 1)
         return operatorPrecedence(tokens, callee)
       } else if (tokens.length > 1 && isAssignOperator(tokens[1])) {
         const operator = tokens[1].value
         tokens.splice(0, 2)
+        const assignmentValue = parse(tokens)
+        exprPosition.end = assignmentValue.$position.end
         return new ExpressionStatement(
-          new AssignmentExpression(callee, operator, parse(tokens))
+          new AssignmentExpression(
+            callee,
+            operator,
+            assignmentValue,
+            exprPosition
+          ),
+          exprPosition
         )
       } else if (
         tokens.length > 1 &&
@@ -205,18 +259,30 @@ export function parse(tokens: Token[]): Node {
           i += 1
         }
         const propertyTokens = tokens.splice(0, i)
+        exprPosition.end =
+          propertyTokens[propertyTokens.length - 1].position.end
 
-        let node
         try {
-          node = parse(propertyTokens)
-          return new MemberExpression(callee, node)
+          return new MemberExpression(
+            callee,
+            parse(propertyTokens) as
+              | Identifier
+              | MemberExpression
+              | CallExpression,
+            exprPosition
+          )
         } catch (err) {
           console.log(err)
         }
       } else if (tokens.length > 1 && tokens[1].type === TokenType.DOT) {
         tokens.splice(0, 2)
-        return new MemberExpression(callee, parse(tokens))
+        return new MemberExpression(
+          callee,
+          parse(tokens) as Identifier | MemberExpression | CallExpression,
+          exprPosition
+        )
       } else if (tokens.length > 1 && tokens[1].type === TokenType.COLON) {
+        // TODO: check if this condition (^ with COLON token type ^) is used
         if (
           tokens[2].type === TokenType.IDENTIFIER ||
           isPrimitiveType(tokens[2])
@@ -227,17 +293,20 @@ export function parse(tokens: Token[]): Node {
             `Expected IDENTIFIER or PRIMITIVE_TYPE (Integer, Float, String) but got ${
               TokenType[tokens[2].type]
             }`,
-            {
-              start: tokens[2].start,
-              end: tokens[2].end,
-            }
+            tokens[2].position
           )
         }
         if (tokens.length > 4 && isAssignOperator(tokens[3])) {
           const operator = tokens[3].value
           tokens.splice(0, 4)
           return new ExpressionStatement(
-            new AssignmentExpression(callee, operator, parse(tokens))
+            new AssignmentExpression(
+              callee,
+              operator,
+              parse(tokens),
+              exprPosition
+            ),
+            exprPosition
           )
         }
         tokens.splice(0, 3)
@@ -248,6 +317,7 @@ export function parse(tokens: Token[]): Node {
         return identifier
       }
     } else if (tokens[0].type === TokenType.LEFT_PARENTHESIS) {
+      const parenthesisPosition = tokens[0].position
       tokens.splice(0, 1)
       let i = 0
       let leftParenthesis = 1
@@ -261,40 +331,44 @@ export function parse(tokens: Token[]): Node {
         i += 1
       }
       const bodyTokens = tokens.splice(0, i)
-      bodyTokens.pop()
+      const parenthesisLastToken = bodyTokens.pop()
+      if (parenthesisLastToken) {
+        parenthesisPosition.end = parenthesisLastToken.position.end
+      }
 
       if (isOperator(tokens[0])) {
         return operatorPrecedence(
           tokens,
-          new ParenthesisStatement(parse(bodyTokens))
+          new ParenthesisStatement(parse(bodyTokens), parenthesisPosition)
         )
       } else {
-        return new ParenthesisStatement(parse(bodyTokens))
+        return new ParenthesisStatement(parse(bodyTokens), parenthesisPosition)
       }
     } else if (tokens[0].type === TokenType.FUNCTION) {
+      const funcDeclPosition = tokens[0].position
       if (tokens[1].type !== TokenType.IDENTIFIER) {
         throw new ParserError(
           `Expected IDENTIFIER but got ${TokenType[tokens[1].type]}`,
-          {
-            start: tokens[1].start,
-            end: tokens[1].end,
-          }
+          tokens[1].position
         )
       }
       const functionDeclaration = new FunctionDeclaration(
-        new Identifier(tokens[1].value)
+        new Identifier(tokens[1].value, 'any', tokens[1].position),
+        [],
+        undefined,
+        TokenType.VOID_TYPE,
+        undefined,
+        funcDeclPosition
       )
       if (tokens[2].type !== TokenType.LEFT_PARENTHESIS) {
         throw new ParserError(
           `Expected LEFT_PARENTHESIS but got ${TokenType[tokens[2].type]}`,
-          {
-            start: tokens[2].start,
-            end: tokens[2].end,
-          }
+          tokens[2].position
         )
       }
 
       if (tokens[3].type === TokenType.RIGHT_PARENTHESIS) {
+        funcDeclPosition.end = tokens[3].position.end
         tokens.splice(0, 4)
       } else {
         tokens.splice(0, 3)
@@ -344,15 +418,13 @@ export function parse(tokens: Token[]): Node {
             `Expected IDENTIFIER or PRIMITIVE_TYPE (Integer, Float, String, Void?)  but got ${
               TokenType[tokens[1].type]
             }`,
-            {
-              start: tokens[1].start,
-              end: tokens[1].end,
-            }
+            tokens[1].position
           )
         }
       }
       // @ts-ignore
       if (tokens[0].type === TokenType.LEFT_BRACE) {
+        const blockFirstToken = tokens[0]
         const block = []
         tokens.splice(0, 1)
         let i = 0
@@ -367,7 +439,10 @@ export function parse(tokens: Token[]): Node {
           i += 1
         }
         const blockTokens = tokens.splice(0, i)
-        blockTokens.pop()
+        const blockLastToken = blockTokens.pop()
+        if (blockLastToken) {
+          funcDeclPosition.end = blockLastToken.position.end
+        }
 
         let node
         while (blockTokens.length > 0) {
@@ -383,21 +458,30 @@ export function parse(tokens: Token[]): Node {
             block.push(node)
           }
         }
-        functionDeclaration.body = new BlockStatement(block)
+        functionDeclaration.body = new BlockStatement(block, {
+          start: blockFirstToken.position.start,
+          end: blockLastToken
+            ? blockLastToken.position.end
+            : blockFirstToken.position.end,
+        })
       } else {
         throw new ParserError(
           `Expected LEFT_BRACE but got ${TokenType[tokens[0].type]}`,
-          {
-            start: tokens[0].start,
-            end: tokens[0].end,
-          }
+          tokens[0].position
         )
       }
+      functionDeclaration.$position = funcDeclPosition
       return functionDeclaration
     } else if (tokens[0].type === TokenType.RETURN) {
+      const returnStmtStartPosition = tokens[0]
       tokens.splice(0, 1)
-      return new ReturnStatement(parse(tokens))
+      const returnArgument = parse(tokens)
+      return new ReturnStatement(returnArgument, {
+        start: returnStmtStartPosition.position.start,
+        end: returnArgument.$position.end,
+      })
     } else if (tokens[0].type === TokenType.LEFT_BRACKET) {
+      const arrayExprPosition = tokens[0].position
       const elements = []
       tokens.splice(0, 1)
       let i = 0
@@ -412,7 +496,10 @@ export function parse(tokens: Token[]): Node {
         i += 1
       }
       const elementsTokens = tokens.splice(0, i)
-      elementsTokens.pop()
+      const lastElementsToken = elementsTokens.pop()
+      if (lastElementsToken) {
+        arrayExprPosition.end = lastElementsToken.position.end
+      }
 
       let node
       while (elementsTokens.length > 0) {
@@ -427,18 +514,20 @@ export function parse(tokens: Token[]): Node {
         }
         elements.push(node)
       }
-      return new ArrayExpression(elements)
+      return new ArrayExpression(elements, arrayExprPosition)
     } else if (tokens[0].type === TokenType.ENUM) {
+      const enumDeclarationPosition = tokens[0].position
       if (tokens[1].type !== TokenType.IDENTIFIER) {
         throw new ParserError(
           `Expected IDENTIFIER but got ${TokenType[tokens[1].type]}`,
-          {
-            start: tokens[1].start,
-            end: tokens[1].end,
-          }
+          tokens[1].position
         )
       }
-      const enumName = new Identifier(tokens[1].value)
+      const enumName = new Identifier(
+        tokens[1].value,
+        'any',
+        tokens[1].position
+      )
       if (tokens[2].type === TokenType.LEFT_BRACE) {
         tokens.splice(0, 3)
         let i = 0
@@ -453,7 +542,10 @@ export function parse(tokens: Token[]): Node {
           i += 1
         }
         const enumTokens = tokens.splice(0, i)
-        enumTokens.pop()
+        const enumLastToken = enumTokens.pop()
+        if (enumLastToken) {
+          enumDeclarationPosition.end = enumLastToken.position.end
+        }
 
         const members = []
         let node
@@ -468,7 +560,9 @@ export function parse(tokens: Token[]): Node {
             break
           }
           if (node.$type === 'Identifier') {
-            members.push(new EnumMember(node as Identifier))
+            members.push(
+              new EnumMember(node as Identifier, undefined, node.$position)
+            )
           } else if (
             node.$type === 'ExpressionStatement' &&
             (node as ExpressionStatement).expression.$type ===
@@ -479,19 +573,13 @@ export function parse(tokens: Token[]): Node {
             if (assignment.left.$type !== 'Identifier') {
               throw new ParserError(
                 'Left side of assignment expression must be an Identifier',
-                {
-                  start: tokens[0].start,
-                  end: tokens[0].end,
-                }
+                tokens[0].position
               )
             }
             if (assignment.operator !== '=') {
               throw new ParserError(
                 'The only operator allowed is the assignment operator',
-                {
-                  start: tokens[0].start,
-                  end: tokens[0].end,
-                }
+                tokens[0].position
               )
             }
             if (
@@ -500,37 +588,33 @@ export function parse(tokens: Token[]): Node {
             ) {
               throw new ParserError(
                 'The only allowed values are a numeric literal and a string literal',
-                {
-                  start: tokens[0].start,
-                  end: tokens[0].end,
-                }
+                tokens[0].position
               )
             }
             members.push(
-              new EnumMember(assignment.left as Identifier, assignment.right)
+              new EnumMember(
+                assignment.left as Identifier,
+                assignment.right,
+                assignment.$position
+              )
             )
           } else {
             throw new ParserError(
               'Enum members must be either an Identifier or ' +
                 'an ExpressionStatement with expression AssignmentExpression',
-              {
-                start: tokens[0].start,
-                end: tokens[0].end,
-              }
+              tokens[0].position
             )
           }
         }
-        return new EnumDeclaration(enumName, members)
+        return new EnumDeclaration(enumName, members, enumDeclarationPosition)
       } else {
         throw new ParserError(
           `Expected LEFT_BRACE but got ${TokenType[tokens[2].type]}`,
-          {
-            start: tokens[2].start,
-            end: tokens[2].end,
-          }
+          tokens[2].position
         )
       }
     } else if (tokens[0].type === TokenType.LEFT_BRACE) {
+      const objectExpressionPosition = tokens[0].position
       tokens.splice(0, 1)
       const properties: ObjectProperty[] = []
       let i = 0
@@ -557,23 +641,33 @@ export function parse(tokens: Token[]): Node {
             continue
           }
           if (propertiesTokens[0].type === TokenType.IDENTIFIER) {
-            const propertyKey = new Identifier(propertiesTokens[0].value)
+            const propertyKey = new Identifier(
+              propertiesTokens[0].value,
+              'any',
+              propertiesTokens[0].position
+            )
             if (propertiesTokens[1].type === TokenType.COLON) {
               propertiesTokens.splice(0, 2)
-              node = new ObjectProperty(propertyKey, parse(propertiesTokens))
+              const propertyValue = parse(propertiesTokens)
+              node = new ObjectProperty(propertyKey, propertyValue, false, {
+                start: propertyKey.$position.start,
+                end: propertyValue.$position.end,
+              })
             } else if (
               propertiesTokens[1].type === TokenType.COMMA ||
               propertiesTokens[1].type === TokenType.RIGHT_BRACE
             ) {
               propertiesTokens.splice(0, 1)
-              node = new ObjectProperty(propertyKey, propertyKey, true)
+              node = new ObjectProperty(
+                propertyKey,
+                propertyKey,
+                true,
+                propertyKey.$position
+              )
             } else {
               throw new ParserError(
                 `Expected COLON but got ${TokenType[propertiesTokens[1].type]}`,
-                {
-                  start: propertiesTokens[1].start,
-                  end: propertiesTokens[1].end,
-                }
+                propertiesTokens[1].position
               )
             }
             // if (properties.findIndex((property) => property.key.value === propertyKey.value) !== -1) {
@@ -587,10 +681,7 @@ export function parse(tokens: Token[]): Node {
               `Expected IDENTIFIER but got ${
                 TokenType[propertiesTokens[0].type]
               }`,
-              {
-                start: propertiesTokens[0].start,
-                end: propertiesTokens[0].end,
-              }
+              propertiesTokens[0].position
             )
           }
         } catch (err) {
@@ -599,15 +690,17 @@ export function parse(tokens: Token[]): Node {
         }
         properties.push(node)
       }
-      return new ObjectExpression(properties)
+      return new ObjectExpression(properties, objectExpressionPosition)
     } else if (tokens[0].type === TokenType.IF) {
+      const ifStmtPosition = tokens[0].position
       // Remove 'IF' token
       tokens.splice(0, 1)
 
-      let ifStatement: IfStatement
-
       // Get tokens between parentheses for test node
-      const testTokens = getTokensBetweenTokens(
+      const {
+        foundTokens: testTokens,
+        endTokenPosition: testEndTokenPosition,
+      } = getTokensBetweenTokens(
         tokens,
         TokenType.LEFT_PARENTHESIS,
         TokenType.RIGHT_PARENTHESIS
@@ -615,8 +708,12 @@ export function parse(tokens: Token[]): Node {
       // Parse test tokens
       const testNode = parse(testTokens)
 
+      const consequentStartTokenPosition = tokens[0].position
       // Get tokens between braces for consequent block
-      const consequentTokens = getTokensBetweenTokens(
+      const {
+        foundTokens: consequentTokens,
+        endTokenPosition: consequentEndTokenPosition,
+      } = getTokensBetweenTokens(
         tokens,
         TokenType.LEFT_BRACE,
         TokenType.RIGHT_BRACE
@@ -640,21 +737,26 @@ export function parse(tokens: Token[]): Node {
           if (elseIf.$type === 'IfStatement') {
             return new IfStatement(
               testNode,
-              new BlockStatement(consequentBlock),
-              elseIf as IfStatement
+              new BlockStatement(consequentBlock, {
+                start: consequentStartTokenPosition.start,
+                end: consequentEndTokenPosition.end,
+              }),
+              elseIf as IfStatement,
+              { start: ifStmtPosition.start, end: elseIf.$position.end }
             )
           } else {
             throw new ParserError(
               `Expected start of 'If statement' but got ${elseIf.$type}`,
-              {
-                start: tokens[0].start,
-                end: tokens[0].end,
-              }
+              tokens[0].position
             )
           }
         } else {
+          const alternativeStartTokenPosition = tokens[0].position
           // Get tokens between braces for alternative block
-          const alternativeTokens = getTokensBetweenTokens(
+          const {
+            foundTokens: alternativeTokens,
+            endTokenPosition: alternativeEndTokenPosition,
+          } = getTokensBetweenTokens(
             tokens,
             TokenType.LEFT_BRACE,
             TokenType.RIGHT_BRACE
@@ -672,8 +774,18 @@ export function parse(tokens: Token[]): Node {
           consequent block and alternative block */
           return new IfStatement(
             testNode,
-            new BlockStatement(consequentBlock),
-            new BlockStatement(alternativeBlock)
+            new BlockStatement(consequentBlock, {
+              start: consequentStartTokenPosition.start,
+              end: consequentEndTokenPosition.end,
+            }),
+            new BlockStatement(alternativeBlock, {
+              start: alternativeStartTokenPosition.start,
+              end: alternativeEndTokenPosition.end,
+            }),
+            {
+              start: ifStmtPosition.start,
+              end: alternativeEndTokenPosition.end,
+            }
           )
         }
       } else {
@@ -682,8 +794,12 @@ export function parse(tokens: Token[]): Node {
            */
         return new IfStatement(
           testNode,
-          new BlockStatement(consequentBlock),
-          undefined
+          new BlockStatement(consequentBlock, {
+            start: consequentStartTokenPosition.start,
+            end: consequentEndTokenPosition.end,
+          }),
+          undefined,
+          { start: ifStmtPosition.start, end: consequentEndTokenPosition.end }
         )
       }
     }
@@ -703,7 +819,6 @@ export function parse(tokens: Token[]): Node {
       column: -2,
     },
   })
-  return new Node()
 }
 
 function operatorPrecedence(tokens: Token[], leftArg: Node): BinaryExpression {
@@ -723,13 +838,21 @@ function operatorPrecedence(tokens: Token[], leftArg: Node): BinaryExpression {
       new BinaryExpression(
         leftArg,
         operator,
-        (rightBinaryNode as BinaryExpression).left
+        (rightBinaryNode as BinaryExpression).left,
+        { start: leftArg.$position.start, end: rightBinaryNode.$position.end }
       ),
       (rightBinaryNode as BinaryExpression).operator,
-      (rightBinaryNode as BinaryExpression).right
+      (rightBinaryNode as BinaryExpression).right,
+      {
+        start: leftArg.$position.start,
+        end: (rightBinaryNode as BinaryExpression).right.$position.end,
+      }
     )
   }
-  return new BinaryExpression(leftArg, operator, rightBinaryNode)
+  return new BinaryExpression(leftArg, operator, rightBinaryNode, {
+    start: leftArg.$position.start,
+    end: rightBinaryNode.$position.end,
+  })
 }
 
 // function typeCheck(program: Program): Program {
@@ -769,16 +892,13 @@ function expectOneOfTokens(target: TokenType[], value: Token): number {
       `Expected one of '${target.map(
         (tokenType) => TokenType[tokenType]
       )}' but got ${TokenType[value.type]}`,
-      {
-        start: value.start,
-        end: value.end,
-      }
+      value.position
     )
   } else {
-    throw new ParserError(`Expected nothing but got ${TokenType[value.type]}`, {
-      start: value.start,
-      end: value.end,
-    })
+    throw new ParserError(
+      `Expected nothing but got ${TokenType[value.type]}`,
+      value.position
+    )
   }
 }
 function expectOptionalOneOfTokens(target: TokenType[], value: Token): number {
