@@ -1,9 +1,14 @@
+import Position from '../types/Position'
 import Node from './Node'
 
 export default class BinaryExpression extends Node {
-  constructor(public left: Node, public operator: string, public right: Node) {
-    super()
-    this.$type = 'BinaryExpression'
+  constructor(
+    public left: Node,
+    public operator: string,
+    public right: Node,
+    position: Position
+  ) {
+    super('BinaryExpression', position)
   }
 
   public toJSON(): any {

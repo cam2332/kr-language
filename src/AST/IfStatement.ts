@@ -1,3 +1,4 @@
+import Position from '../types/Position'
 import BlockStatement from './BlockStatement'
 import Node from './Node'
 
@@ -5,10 +6,10 @@ export default class IfStatement extends Node {
   constructor(
     public test: Node,
     public consequent: BlockStatement,
-    public alternate: BlockStatement | IfStatement | undefined
+    public alternate: BlockStatement | IfStatement | undefined,
+    position: Position
   ) {
-    super()
-    this.$type = 'IfStatement'
+    super('IfStatement', position)
   }
 
   public toJSON(): any {

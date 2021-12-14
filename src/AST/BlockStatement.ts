@@ -1,9 +1,9 @@
+import Position from '../types/Position'
 import Node from './Node'
 
 export default class BlockStatement extends Node {
-  constructor(public body: Node[] = []) {
-    super()
-    this.$type = 'BlockStatement'
+  constructor(public body: Node[] = [], position: Position) {
+    super('BlockStatement', position)
   }
 
   public toJSON(): any {

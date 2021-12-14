@@ -1,9 +1,9 @@
+import Position from '../types/Position'
 import Node from './Node'
 
 export default class ParenthesisStatement extends Node {
-  constructor(public body: Node) {
-    super()
-    this.$type = 'ParenthesisStatement'
+  constructor(public body: Node, position: Position) {
+    super('ParenthesisStatement', position)
   }
 
   public toJSON(): any {

@@ -1,9 +1,9 @@
+import Position from '../types/Position'
 import Node from './Node'
 
 export default class ReturnStatement extends Node {
-  constructor(public argument: Node) {
-    super()
-    this.$type = 'ReturnStatement'
+  constructor(public argument: Node, position: Position) {
+    super('ReturnStatement', position)
   }
 
   public toJSON(): any {

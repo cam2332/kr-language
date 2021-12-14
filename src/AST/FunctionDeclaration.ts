@@ -1,3 +1,4 @@
+import Position from '../types/Position'
 import TokenString from '../types/TokenString'
 import { TokenType } from '../types/TokenType'
 import BlockStatement from './BlockStatement'
@@ -11,10 +12,10 @@ export default class FunctionDeclaration extends Node {
     public parameters: Node[] = [],
     public body: BlockStatement | undefined = undefined,
     public returnType: TokenType = TokenType.VOID_TYPE,
-    public returnStatement: ReturnStatement | undefined = undefined
+    public returnStatement: ReturnStatement | undefined = undefined,
+    position: Position
   ) {
-    super()
-    this.$type = 'FunctionDeclaration'
+    super('FunctionDeclaration', position)
   }
 
   public toJSON(): any {

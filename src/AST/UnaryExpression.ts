@@ -1,9 +1,9 @@
+import Position from '../types/Position'
 import Node from './Node'
 
 export default class UnaryExpression extends Node {
-  constructor(public operator: string, public right: Node) {
-    super()
-    this.$type = 'UnaryExpression'
+  constructor(public operator: string, public right: Node, position: Position) {
+    super('UnaryExpression', position)
   }
 
   public toJSON(): any {

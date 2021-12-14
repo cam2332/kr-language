@@ -1,3 +1,4 @@
+import Position from '../types/Position'
 import CallExpression from './CallExpression'
 import Identifier from './Identifier'
 import Node from './Node'
@@ -5,10 +6,10 @@ import Node from './Node'
 export default class MemberExpression extends Node {
   constructor(
     public object: Identifier | MemberExpression | CallExpression,
-    public property: Identifier | MemberExpression | CallExpression
+    public property: Identifier | MemberExpression | CallExpression,
+    position: Position
   ) {
-    super()
-    this.$type = 'MemberExpression'
+    super('MemberExpression', position)
   }
 
   public toJSON(): any {

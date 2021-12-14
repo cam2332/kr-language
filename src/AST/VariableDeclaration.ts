@@ -1,3 +1,4 @@
+import Position from '../types/Position'
 import Identifier from './Identifier'
 import Node from './Node'
 
@@ -7,10 +8,10 @@ export default class VariableDeclaration extends Node {
   constructor(
     public kind: VariableKind,
     public name: Identifier,
-    public init: Node
+    public init: Node,
+    position: Position
   ) {
-    super()
-    this.$type = 'VariableDeclaration'
+    super('VariableDeclaration', position)
   }
 
   public toJSON(): any {

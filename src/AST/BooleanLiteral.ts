@@ -1,9 +1,9 @@
+import Position from '../types/Position'
 import Node from './Node'
 
 export default class BooleanLiteral extends Node {
-  constructor(public value: boolean) {
-    super()
-    this.$type = 'BooleanLiteral'
+  constructor(public value: boolean, position: Position) {
+    super('BooleanLiteral', position)
   }
 
   public toJSON(): any {

@@ -1,9 +1,13 @@
+import Position from '../types/Position'
 import Node from './Node'
 
 export default class Identifier extends Node {
-  constructor(public value: string, public typeAnnotation: string = 'any') {
-    super()
-    this.$type = 'Identifier'
+  constructor(
+    public value: string,
+    public typeAnnotation: string = 'any',
+    position: Position
+  ) {
+    super('Identifier', position)
   }
 
   public toJSON(): any {
