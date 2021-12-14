@@ -1,4 +1,4 @@
-import ParserError from './ParserError'
+import ParserError from './errors/ParserError'
 import Token from './Token'
 
 export enum TokenType {
@@ -22,7 +22,12 @@ export enum TokenType {
   FALSE,
   CONST,
   LET,
+  CLASS,
+  EXTENDS,
+  THIS,
+  SUPER,
   //Types
+  BOOLEAN_TYPE,
   INTEGER_TYPE,
   FLOAT_TYPE,
   STRING_TYPE,

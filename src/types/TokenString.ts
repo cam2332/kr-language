@@ -19,7 +19,12 @@ const TokenString = [
   'false',
   'const',
   'let',
+  'class',
+  'extends',
+  'this',
+  'super',
   //Types
+  'Boolean',
   'Integer',
   'Float',
   'String',

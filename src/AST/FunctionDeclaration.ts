@@ -1,5 +1,5 @@
-import TokenString from '../TokenString'
-import { TokenType } from '../TokenType'
+import TokenString from '../types/TokenString'
+import { TokenType } from '../types/TokenType'
 import BlockStatement from './BlockStatement'
 import Identifier from './Identifier'
 import Node from './Node'

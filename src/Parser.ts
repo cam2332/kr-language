@@ -1,4 +1,4 @@
-import Token from './Token'
+import Token from './types/Token'
 import {
   isOperator,
   isAssignOperator,
@@ -7,16 +7,15 @@ import {
   compareOperatorPriority,
   isUnaryOperator,
   isBooleanLiteral,
-} from './TokenType'
+} from './types/TokenType'
 import Node from './AST/Node'
 import Identifier from './AST/Identifier'
 import Program from './AST/Program'
 import VariableDeclaration, { VariableKind } from './AST/VariableDeclaration'
-import VariableDeclarator from './AST/VariableDeclarator'
 import NumericLiteral from './AST/NumericLiteral'
 import BinaryExpression from './AST/BinaryExpression'
 import CallExpression from './AST/CallExpression'
-import ParserError from './ParserError'
+import ParserError from './types/errors/ParserError'
 import ExpressionStatement from './AST/ExpressionStatement'
 import AssignmentExpression from './AST/AssignmentExpression'
 import FunctionDeclaration from './AST/FunctionDeclaration'

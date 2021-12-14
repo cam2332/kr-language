@@ -1,5 +1,6 @@
 import FunctionDeclaration from '../AST/FunctionDeclaration'
 import Identifier from '../AST/Identifier'
+import TokenString from '../types/TokenString'
 import Environment from './Environment'
 import Interpreter from './Interpreter'
 import InterpreterError from './InterpreterError'

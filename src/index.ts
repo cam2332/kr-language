@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as rd from 'readline'
-import { TokenType } from './TokenType'
+import { TokenType } from './types/TokenType'
 import { tokenize } from './Lexer'
 import { mainParse } from './Parser'
 import Interpreter from './Interpreter/Interpreter'

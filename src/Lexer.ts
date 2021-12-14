@@ -1,7 +1,7 @@
 import * as rd from 'readline'
-import Token from './Token'
-import TokenString from './TokenString'
-import { TokenType } from './TokenType'
+import Token from './types/Token'
+import TokenString from './types/TokenString'
+import { TokenType } from './types/TokenType'
 
 const PARENTHESIS_REGEX = new RegExp('[()]')
 const BRACES_REGEX = new RegExp('[{}]')

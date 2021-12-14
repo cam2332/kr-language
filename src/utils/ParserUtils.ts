@@ -1,6 +1,6 @@
-import ParserError from '../ParserError'
-import Token from '../Token'
-import { TokenType } from '../TokenType'
+import ParserError from '../types/errors/ParserError'
+import Token from '../types/Token'
+import { TokenType } from '../types/TokenType'
 
 /**
  * First token in array must be of type startTokenType and last token must be of type endTokenType
