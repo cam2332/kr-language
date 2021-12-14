@@ -26,6 +26,7 @@ export default class FunctionDeclaration extends Node {
         body: this.body,
         returnType: this.returnType && TokenString[this.returnType],
         returnStatement: this.returnStatement,
+        position: this.$position,
       },
     }
   }

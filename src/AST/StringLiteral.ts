@@ -10,6 +10,7 @@ export default class StringLiteral extends Node {
     return {
       StringLiteral: {
         value: this.value,
+        position: this.$position,
       },
     }
   }

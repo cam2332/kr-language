@@ -10,6 +10,7 @@ export default class Program extends Node {
     return {
       Program: {
         body: this.body,
+        position: this.$position,
       },
     }
   }

@@ -17,6 +17,7 @@ export default class EnumDeclaration extends Node {
       EnumDeclaration: {
         name: this.name,
         members: this.members,
+        position: this.$position,
       },
     }
   }

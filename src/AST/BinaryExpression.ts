@@ -17,6 +17,7 @@ export default class BinaryExpression extends Node {
         left: this.left,
         operator: this.operator,
         right: this.right,
+        position: this.$position,
       },
     }
   }

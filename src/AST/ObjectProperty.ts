@@ -18,6 +18,7 @@ export default class ObjectProperty extends Node {
         key: this.key,
         shorthand: this.shorthand,
         value: this.value,
+        position: this.$position,
       },
     }
   }

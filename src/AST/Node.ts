@@ -15,6 +15,7 @@ export default class Node {
   public toJSON(): any {
     return {
       Node: {},
+      position: this.$position,
     }
   }
 }

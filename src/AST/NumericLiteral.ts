@@ -10,6 +10,7 @@ export default class NumericLiteral extends Node {
     return {
       NumericLiteral: {
         value: this.value,
+        position: this.$position,
       },
     }
   }

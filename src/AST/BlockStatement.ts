@@ -10,6 +10,7 @@ export default class BlockStatement extends Node {
     return {
       BlockStatement: {
         body: this.body,
+        position: this.$position,
       },
     }
   }

@@ -16,6 +16,7 @@ export default class EnumMember extends Node {
       EnumMember: {
         name: this.name,
         initializer: this.initializer,
+        position: this.$position,
       },
     }
   }

@@ -10,6 +10,7 @@ export default class ReturnStatement extends Node {
     return {
       ReturnStatement: {
         argument: this.argument,
+        position: this.$position,
       },
     }
   }

@@ -10,6 +10,7 @@ export default class ParenthesisStatement extends Node {
     return {
       ParenthesisStatement: {
         body: this.body,
+        position: this.$position,
       },
     }
   }

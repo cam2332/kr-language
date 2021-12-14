@@ -20,6 +20,7 @@ export default class VariableDeclaration extends Node {
         kind: this.kind,
         name: this.name,
         init: this.init,
+        position: this.$position,
       },
     }
   }

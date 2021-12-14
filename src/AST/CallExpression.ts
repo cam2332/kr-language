@@ -16,6 +16,7 @@ export default class CallExpression extends Node {
       CallExpression: {
         callee: this.callee,
         arguments: this.args,
+        position: this.$position,
       },
     }
   }

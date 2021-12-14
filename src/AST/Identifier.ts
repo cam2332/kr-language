@@ -15,6 +15,7 @@ export default class Identifier extends Node {
       Identifier: {
         value: this.value,
         ...(this.typeAnnotation && { typeAnnotation: this.typeAnnotation }),
+        position: this.$position,
       },
     }
   }

@@ -18,6 +18,7 @@ export default class IfStatement extends Node {
         test: this.test,
         consequent: this.consequent,
         alternate: this.alternate,
+        position: this.$position,
       },
     }
   }

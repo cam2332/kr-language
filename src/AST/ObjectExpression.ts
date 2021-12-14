@@ -10,6 +10,7 @@ export default class ObjectExpression extends Node {
     return {
       ObjectExpression: {
         properties: this.properties,
+        position: this.$position,
       },
     }
   }

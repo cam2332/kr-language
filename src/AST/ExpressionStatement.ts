@@ -10,6 +10,7 @@ export default class ExpressionStatement extends Node {
     return {
       ExpressionStatement: {
         expression: this.expression,
+        position: this.$position,
       },
     }
   }

@@ -12,6 +12,7 @@ export default class VariableDeclarator extends Node {
       VariableDeclarator: {
         name: this.name,
         init: this.init,
+        position: this.$position,
       },
     }
   }

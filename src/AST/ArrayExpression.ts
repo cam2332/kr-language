@@ -10,6 +10,7 @@ export default class ArrayExpression extends Node {
     return {
       ArrayExpression: {
         elements: this.elements,
+        position: this.$position,
       },
     }
   }

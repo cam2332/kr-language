@@ -10,6 +10,7 @@ export default class BooleanLiteral extends Node {
     return {
       BooleanLiteral: {
         value: this.value,
+        position: this.$position,
       },
     }
   }

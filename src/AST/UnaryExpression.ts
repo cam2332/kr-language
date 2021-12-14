@@ -11,6 +11,7 @@ export default class UnaryExpression extends Node {
       UnaryExpression: {
         operator: this.operator,
         right: this.right,
+        position: this.$position,
       },
     }
   }

@@ -17,6 +17,7 @@ export default class MemberExpression extends Node {
       MemberExpression: {
         object: this.object,
         property: this.property,
+        position: this.$position,
       },
     }
   }
