@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as rd from 'readline'
 import { TokenType } from './types/TokenType'
 import { tokenize } from './Lexer'
-import { mainParse } from './Parser/Parser'
+import Parser from './Parser/Parser'
 import Interpreter from './Interpreter/Interpreter'
 
 const args = process.argv.slice(2)
@@ -31,8 +31,7 @@ reader.on('close', () => {
       stream.write(
         JSON.stringify(
           {
-            start: token.start,
-            end: token.end,
+            position: token.position,
             type: TokenType[token.type],
             value: token.value,
           },
@@ -50,7 +49,8 @@ reader.on('close', () => {
     console.log(err)
   }
 
-  const program = mainParse(tokens)
+  const parser = new Parser(tokens)
+  const program = parser.parse()
 
   const interpreter: Interpreter = new Interpreter()
   interpreter.interpret(program.body)

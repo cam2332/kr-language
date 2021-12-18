@@ -2,7 +2,7 @@ import Position from '../types/Position'
 import Node from './Node'
 
 export default class ReturnStatement extends Node {
-  constructor(public argument: Node, position: Position) {
+  constructor(public argument: Node | undefined, position: Position) {
     super('ReturnStatement', position)
   }
 

@@ -5,7 +5,7 @@ import Node from './Node'
 
 export default class MemberExpression extends Node {
   constructor(
-    public object: Identifier | MemberExpression | CallExpression,
+    public object: Node,
     public property: Identifier | MemberExpression | CallExpression,
     position: Position
   ) {
