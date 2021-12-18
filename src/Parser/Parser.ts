@@ -528,22 +528,11 @@ export default class Parser {
     const blockBody: BlockStatement = this.blockStatement()
     funcDeclPosition.end = blockBody.$position.end
 
-    let returnStmt: ReturnStatement | undefined = undefined
-    const returnStmtIndex = blockBody.body.findIndex(
-      (node) => node.$type === 'ReturnStatement'
-    )
-    if (returnStmtIndex != -1) {
-      returnStmt = blockBody.body.splice(
-        returnStmtIndex,
-        1
-      )[0] as ReturnStatement
-    }
     return new FunctionDeclaration(
       identifier,
       parameters,
       blockBody,
       returnType,
-      returnStmt,
       funcDeclPosition
     )
   }

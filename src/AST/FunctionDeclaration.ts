@@ -4,15 +4,13 @@ import { TokenType } from '../types/TokenType'
 import BlockStatement from './BlockStatement'
 import Identifier from './Identifier'
 import Node from './Node'
-import ReturnStatement from './ReturnStatement'
 
 export default class FunctionDeclaration extends Node {
   constructor(
     public name: Identifier,
     public parameters: Node[] = [],
-    public body: BlockStatement | undefined = undefined,
+    public body: BlockStatement,
     public returnType: TokenType = TokenType.VOID_TYPE,
-    public returnStatement: ReturnStatement | undefined = undefined,
     position: Position
   ) {
     super('FunctionDeclaration', position)
@@ -25,7 +23,6 @@ export default class FunctionDeclaration extends Node {
         parameters: this.parameters,
         body: this.body,
         returnType: this.returnType && TokenString[this.returnType],
-        returnStatement: this.returnStatement,
         position: this.$position,
       },
     }
