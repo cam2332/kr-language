@@ -1005,8 +1005,16 @@ function classifyString(data: string): TokenType {
   else if (data === TokenString[TokenType.BREAK]) return TokenType.BREAK
   else if (data === TokenString[TokenType.TRUE]) return TokenType.TRUE
   else if (data === TokenString[TokenType.FALSE]) return TokenType.FALSE
+  else if (data === TokenString[TokenType.NULL]) return TokenType.NULL
   else if (data === TokenString[TokenType.CONST]) return TokenType.CONST
   else if (data === TokenString[TokenType.LET]) return TokenType.LET
+  else if (data === TokenString[TokenType.CLASS]) return TokenType.CLASS
+  else if (data === TokenString[TokenType.EXTENDS]) return TokenType.EXTENDS
+  else if (data === TokenString[TokenType.THIS]) return TokenType.THIS
+  else if (data === TokenString[TokenType.SUPER]) return TokenType.SUPER
+  else if (data === TokenString[TokenType.NEW]) return TokenType.NEW
+  else if (data === TokenString[TokenType.BOOLEAN_TYPE])
+    return TokenType.BOOLEAN_TYPE
   else if (data === TokenString[TokenType.INTEGER_TYPE])
     return TokenType.INTEGER_TYPE
   else if (data === TokenString[TokenType.FLOAT_TYPE])

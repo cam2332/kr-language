@@ -20,12 +20,14 @@ export enum TokenType {
   BREAK,
   TRUE,
   FALSE,
+  NULL,
   CONST,
   LET,
   CLASS,
   EXTENDS,
   THIS,
   SUPER,
+  NEW,
   //Types
   BOOLEAN_TYPE,
   INTEGER_TYPE,
@@ -85,6 +87,10 @@ export enum TokenType {
 export function isPrimitiveType(token: Token): boolean {
   let isPrimitiveType = false
 
+  isPrimitiveType = token.type === TokenType.BOOLEAN_TYPE
+  if (isPrimitiveType) {
+    return isPrimitiveType
+  }
   isPrimitiveType = token.type === TokenType.INTEGER_TYPE
   if (isPrimitiveType) {
     return isPrimitiveType
