@@ -511,14 +511,14 @@ export default class Parser {
     }
     this.consume(TokenType.RIGHT_PARENTHESIS)
 
-    let returnType = TokenType.VOID_TYPE
+    let returnType = 'any'
     if (this.match(TokenType.COLON)) {
       if (
         this.check(TokenType.IDENTIFIER) ||
         isPrimitiveType(this.peek()) ||
         this.check(TokenType.VOID_TYPE)
       ) {
-        returnType = this.peek().type
+        returnType = TokenString[this.peek().type]
         // skip IDENTIFIER, PRIMITIVE_TYPE or VOID_TYPE token
         this.advance()
       } else {

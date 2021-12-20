@@ -10,7 +10,7 @@ export default class FunctionDeclaration extends Node {
     public name: Identifier,
     public parameters: Node[] = [],
     public body: BlockStatement,
-    public returnType: TokenType = TokenType.VOID_TYPE,
+    public returnType: string = 'any',
     position: Position
   ) {
     super('FunctionDeclaration', position)
@@ -22,7 +22,7 @@ export default class FunctionDeclaration extends Node {
         name: this.name,
         parameters: this.parameters,
         body: this.body,
-        returnType: this.returnType && TokenString[this.returnType],
+        returnType: this.returnType,
         position: this.$position,
       },
     }

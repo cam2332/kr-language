@@ -5,6 +5,7 @@ import Environment from './Environment'
 import Interpreter from './Interpreter'
 import InterpreterError from './errors/InterpreterError'
 import KrCallable from './KrCallable'
+import Return from './Return'
 
 export default class KrFunction implements KrCallable {
   private readonly declaration: FunctionDeclaration
@@ -40,14 +41,16 @@ export default class KrFunction implements KrCallable {
       if (this.declaration.body && this.declaration.body?.body) {
         interpreter.executeBlock(this.declaration.body?.body, environment)
       }
-      if (this.declaration.returnStatement) {
-        const result = interpreter.evaluateReturnStatement(
-          this.declaration.returnStatement.argument,
-          environment
-        )
-        return result
-      }
     } catch (error) {
+      // TODO: add return value type check
+      if (error instanceof Return) {
+        if (this.isInitializer) return this.closure.getAt(0, 'this') as Object
+
+        if (error.value !== null) {
+          return error.value
+        }
+        return
+      }
       throw new InterpreterError(
         "Unexpected error while executing block in function '" +
           this.declaration.name.value +
