@@ -24,7 +24,10 @@ import IfStatement from '../AST/IfStatement'
 import UnaryExpression from '../AST/UnaryExpression'
 import BooleanLiteral from '../AST/BooleanLiteral'
 import Position, { initMinusOne } from '../types/Position'
+import ClassDeclaration, { Accessibility } from '../AST/ClassDeclaration'
 import NullLiteral from '../AST/NullLiteral'
+import ClassMethod from '../AST/ClassMethod'
+import ClassProperty from '../AST/ClassProperty'
 
 export default class Parser {
   private tokens: Token[]
@@ -69,6 +72,9 @@ export default class Parser {
     }
     if (this.match(TokenType.ENUM)) {
       return this.enumDeclaration()
+    }
+    if (this.match(TokenType.CLASS)) {
+      return this.classDeclaration()
     }
 
     return this.statement()
@@ -576,6 +582,205 @@ export default class Parser {
     enumDeclPosition.end = this.previous().position.end
 
     return new EnumDeclaration(identifier, members, enumDeclPosition)
+  }
+
+  private classDeclaration(): ClassDeclaration {
+    const classDeclPosition = this.previous().position
+    const classNameToken = new Identifier(
+      this.consume(TokenType.IDENTIFIER).value,
+      'any',
+      this.previous().position
+    )
+
+    let superClass: Identifier | undefined
+    if (this.match(TokenType.EXTENDS)) {
+      superClass = new Identifier(
+        this.consume(TokenType.IDENTIFIER).value,
+        'any',
+        this.previous().position
+      )
+    }
+
+    this.consume(TokenType.LEFT_BRACE)
+    const constructors: ClassMethod[] = [],
+      methods: ClassMethod[] = [],
+      properties: ClassProperty[] = []
+    while (!this.check(TokenType.RIGHT_BRACE)) {
+      const methodPropertyPosition: Position = this.consume(
+        TokenType.IDENTIFIER
+      ).position
+      let methodPropertyNameToken: Token = this.previous(),
+        accessibility: Accessibility = 'public',
+        isAccessibilitySet: boolean = false,
+        isStatic: boolean = false,
+        isStaticSet: boolean = false,
+        staticTokenPosition: Position = initMinusOne(),
+        readonly: boolean = false,
+        isReadonlySet: boolean = false,
+        readonlyTokenPosition: Position = initMinusOne()
+      while (this.check(TokenType.IDENTIFIER)) {
+        if (
+          this.previous().value === 'public' ||
+          this.previous().value === 'protected' ||
+          this.previous().value === 'private'
+        ) {
+          if (isAccessibilitySet) {
+            throw new ParserError(
+              'Accessibility modifier already set.',
+              this.previous().position
+            )
+          } else {
+            accessibility = this.previous().value as Accessibility
+            methodPropertyNameToken = this.consume(TokenType.IDENTIFIER)
+            isAccessibilitySet = true
+          }
+        }
+        if (this.previous().value === 'static') {
+          if (isStaticSet) {
+            throw new ParserError(
+              "'static' modifier already set.",
+              this.previous().position
+            )
+          } else {
+            isStatic = true
+            staticTokenPosition = { ...this.previous().position }
+            methodPropertyNameToken = this.consume(TokenType.IDENTIFIER)
+            isStaticSet = true
+          }
+        }
+        if (this.previous().value === 'readonly') {
+          if (isReadonlySet) {
+            throw new ParserError(
+              "'readonly' modifier already set.",
+              this.previous().position
+            )
+          } else {
+            readonly = true
+            readonlyTokenPosition = { ...this.previous().position }
+            methodPropertyNameToken = this.consume(TokenType.IDENTIFIER)
+            isReadonlySet = true
+          }
+        }
+      }
+      if (this.match(TokenType.LEFT_PARENTHESIS)) {
+        const parameters: Identifier[] = []
+        if (!this.check(TokenType.RIGHT_PARENTHESIS)) {
+          do {
+            if (parameters.length >= 255) {
+              throw new ParserError(
+                "Function can't have more that 255 parameters.",
+                this.peek().position
+              )
+            }
+
+            this.consume(TokenType.IDENTIFIER)
+            const identifier: Identifier = this.identifier()
+            parameters.push(identifier)
+          } while (this.match(TokenType.COMMA))
+        }
+        this.consume(TokenType.RIGHT_PARENTHESIS)
+
+        let returnType = TokenType.VOID_TYPE
+        if (this.match(TokenType.COLON)) {
+          if (
+            this.check(TokenType.IDENTIFIER) ||
+            isPrimitiveType(this.peek()) ||
+            this.check(TokenType.VOID_TYPE)
+          ) {
+            returnType = this.peek().type
+            // skip IDENTIFIER, PRIMITIVE_TYPE or VOID_TYPE token
+            this.advance()
+          } else {
+            throw new ParserError(
+              'Expected IDENTIFIER or PRIMITIVE_TYPE ' +
+                '(Boolean, Integer, Float, String, Void) but got ' +
+                TokenType[this.peek().type],
+              this.peek().position
+            )
+          }
+        }
+
+        this.consume(TokenType.LEFT_BRACE)
+        const blockBody: BlockStatement = this.blockStatement()
+        methodPropertyPosition.end = blockBody.$position.end
+
+        if (methodPropertyNameToken.value === 'constructor') {
+          if (isStatic && isStaticSet) {
+            throw new ParserError(
+              "'static' modifier cannot appear on a constructor declaration.",
+              staticTokenPosition
+            )
+          }
+          if (readonly && isReadonlySet) {
+            throw new ParserError(
+              "'readonly' modifier cannot appear on a constructor declaration.",
+              readonlyTokenPosition
+            )
+          }
+          constructors.push(
+            new ClassMethod(
+              new Identifier(
+                methodPropertyNameToken.value,
+                'any',
+                methodPropertyNameToken.position
+              ),
+              parameters,
+              blockBody,
+              isStatic,
+              accessibility,
+              methodPropertyNameToken.value,
+              returnType,
+              methodPropertyPosition
+            )
+          )
+        } else if (methodPropertyNameToken.value === 'method') {
+          methods.push(
+            new ClassMethod(
+              new Identifier(
+                methodPropertyNameToken.value,
+                'any',
+                methodPropertyNameToken.position
+              ),
+              parameters,
+              blockBody,
+              isStatic,
+              accessibility,
+              methodPropertyNameToken.value,
+              returnType,
+              methodPropertyPosition
+            )
+          )
+        }
+      } else if (this.match(TokenType.ASSIGNMENT)) {
+        const value = this.assignment()
+        methodPropertyPosition.end = value.$position.end
+        properties.push(
+          new ClassProperty(
+            new Identifier(
+              methodPropertyNameToken.value,
+              'any',
+              methodPropertyNameToken.position
+            ),
+            value,
+            isStatic,
+            readonly,
+            accessibility,
+            methodPropertyPosition
+          )
+        )
+      }
+    }
+    this.consume(TokenType.RIGHT_BRACE)
+    classDeclPosition.end = this.previous().position.end
+
+    return new ClassDeclaration(
+      classNameToken,
+      superClass,
+      constructors,
+      properties,
+      methods,
+      classDeclPosition
+    )
   }
 
   /**
