@@ -1,4 +1,3 @@
-import * as rd from 'readline'
 import Token from './types/Token'
 import TokenString from './types/TokenString'
 import { TokenType } from './types/TokenType'
@@ -13,12 +12,15 @@ const ALPHANUMERIC_WHITESPACE_REGEX = new RegExp('[A-Za-z0-9(\\s*)]')
 
 let lineNumber = 0
 
-export function tokenize(file: rd.Interface): Token[] {
-  const data: Token[] = []
+export function tokenize(sourceFile: string): Token[] {
+  const data: Token[] = [],
+    lines: string[] = sourceFile
+      .split('\n')
+      .map((line) => line.replace('\r', ''))
 
   let commentBlock = 0
   let literal = false
-  file.on('line', (line: string) => {
+  lines.forEach((line: string) => {
     lineNumber++
 
     const tokens: Token[] = []
