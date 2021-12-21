@@ -1,6 +1,7 @@
+import KrError from '../../types/KrError'
 import Position from '../../types/Position'
 
-export default class ParserError extends Error {
+export default class ParserError extends Error implements KrError {
   constructor(
     message: string,
     public position: Position = {
@@ -9,5 +10,6 @@ export default class ParserError extends Error {
     }
   ) {
     super(message)
+    super.name = 'Parser Error'
   }
 }

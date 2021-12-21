@@ -1,6 +1,7 @@
+import KrError from '../../types/KrError'
 import Position from '../../types/Position'
 
-export default class InterpreterError extends Error {
+export default class InterpreterError extends Error implements KrError {
   constructor(
     message: string,
     public position: Position = {
@@ -9,6 +10,6 @@ export default class InterpreterError extends Error {
     }
   ) {
     super(message)
-    super.name = 'InterpreterError'
+    super.name = 'Interpreter Error'
   }
 }
