@@ -29,6 +29,7 @@ import NullLiteral from '../AST/NullLiteral'
 import ClassMethod from '../AST/ClassMethod'
 import ClassProperty from '../AST/ClassProperty'
 import TokenString from '../types/TokenString'
+import RangeExpression from '../AST/RangeExpression'
 
 export default class Parser {
   private tokens: Token[]
@@ -398,7 +399,8 @@ export default class Parser {
     }
 
     if (this.match(TokenType.LEFT_BRACKET)) {
-      const arrayExprPosition: Position = this.previous().position
+      let isArray: boolean = true
+      const exprPosition: Position = this.previous().position
       const elements: Node[] = []
       if (!this.check(TokenType.RIGHT_BRACKET)) {
         do {
@@ -408,10 +410,56 @@ export default class Parser {
           !this.check(TokenType.RIGHT_BRACKET)
         )
       }
-      this.consume(TokenType.RIGHT_BRACKET)
-      arrayExprPosition.end = this.previous().position.end
 
-      return new ArrayExpression(elements, arrayExprPosition)
+      try {
+        this.consume(TokenType.RIGHT_BRACKET)
+      } catch (error: any) {
+        if (error.message === 'Expected RIGHT_BRACKET but got DOUBLE_DOT') {
+          isArray = false
+          this.advance()
+          if (!this.check(TokenType.RIGHT_BRACKET)) {
+            do {
+              elements.push(this.expression())
+            } while (
+              this.match(TokenType.DOUBLE_DOT) &&
+              !this.check(TokenType.RIGHT_BRACKET)
+            )
+          }
+          this.consume(TokenType.RIGHT_BRACKET)
+        } else {
+          throw error
+        }
+      }
+
+      exprPosition.end = this.previous().position.end
+
+      if (isArray) {
+        return new ArrayExpression(elements, exprPosition)
+      } else {
+        if (elements.length === 2) {
+          return new RangeExpression(
+            elements[0] as NumericLiteral,
+            new NumericLiteral(1, initMinusOne()),
+            elements[1] as NumericLiteral,
+            exprPosition
+          )
+        } else if (elements.length === 3) {
+          return new RangeExpression(
+            elements[0] as NumericLiteral,
+            elements[1] as NumericLiteral,
+            elements[2] as NumericLiteral,
+            exprPosition
+          )
+        } else {
+          throw new ParserError(
+            'Expected 2 or 3 elements in RangeExpression but got ' +
+              elements.length +
+              ', ' +
+              elements,
+            exprPosition
+          )
+        }
+      }
     }
 
     throw new ParserError('Expected expression.', this.peek().position)
