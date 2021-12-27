@@ -14,6 +14,7 @@ import CallExpression from '../AST/CallExpression'
 import StringLiteral from '../AST/StringLiteral'
 import NativeKrFunction from './NativeKrFunctions'
 import ParenthesisStatement from '../AST/ParenthesisStatement'
+import ObjectExpression from '../AST/ObjectExpression'
 import Position, { initMinusOne } from '../types/Position'
 import ReturnStatement from '../AST/ReturnStatement'
 import Return from './Return'
@@ -168,6 +169,13 @@ export default class Interpreter {
       }
       case 'ParenthesisStatement': {
         return this.evaluate((node as ParenthesisStatement).body)
+      }
+      case 'ObjectExpression': {
+        return (node as ObjectExpression).properties.reduce((obj, property) => {
+          obj[property.key.value] = this.evaluate(property.value)
+          console.log(obj, property.key.value)
+          return obj
+        }, Object.create(null))
       }
       default: {
         throw new InterpreterError(
