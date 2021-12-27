@@ -15,6 +15,8 @@ import StringLiteral from '../AST/StringLiteral'
 import NativeKrFunction from './NativeKrFunctions'
 import ParenthesisStatement from '../AST/ParenthesisStatement'
 import Position, { initMinusOne } from '../types/Position'
+import ReturnStatement from '../AST/ReturnStatement'
+import Return from './Return'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
@@ -193,6 +195,15 @@ export default class Interpreter {
       }
       case 'CallExpression': {
         this.evaluate(node as CallExpression)
+        break
+      }
+      case 'ReturnStatement': {
+        const returnStatement = node as ReturnStatement
+        let value = null
+        if (returnStatement.argument) {
+          value = this.evaluate(returnStatement.argument)
+        }
+        throw new Return(value)
       }
     }
   }
