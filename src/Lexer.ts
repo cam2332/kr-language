@@ -727,6 +727,7 @@ function classifyString(data: string): TokenType {
   else if (data === TokenString[TokenType.ELSE]) return TokenType.ELSE
   else if (data === TokenString[TokenType.FOR]) return TokenType.FOR
   else if (data === TokenString[TokenType.IN]) return TokenType.IN
+  else if (data === TokenString[TokenType.OF]) return TokenType.OF
   else if (data === TokenString[TokenType.CONTINUE]) return TokenType.CONTINUE
   else if (data === TokenString[TokenType.BREAK]) return TokenType.BREAK
   else if (data === TokenString[TokenType.TRUE]) return TokenType.TRUE

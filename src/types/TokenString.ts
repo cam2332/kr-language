@@ -13,6 +13,7 @@ const TokenString = [
   'else',
   'for',
   'in',
+  'of',
   'continue',
   'break',
   'true',

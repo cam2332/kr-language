@@ -16,6 +16,7 @@ export enum TokenType {
   ELSE,
   FOR,
   IN,
+  OF,
   CONTINUE,
   BREAK,
   TRUE,
