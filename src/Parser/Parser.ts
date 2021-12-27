@@ -29,6 +29,9 @@ import NullLiteral from '../AST/NullLiteral'
 import ClassMethod from '../AST/ClassMethod'
 import ClassProperty from '../AST/ClassProperty'
 import TokenString from '../types/TokenString'
+import ForOfStatement from '../AST/ForOfStatement'
+import ForInStatement from '../AST/ForInStatement'
+import ForStatement from '../AST/ForStatement'
 import RangeExpression from '../AST/RangeExpression'
 
 export default class Parser {
@@ -83,6 +86,9 @@ export default class Parser {
   }
 
   private statement(): Node {
+    if (this.match(TokenType.FOR)) {
+      return this.forStatement()
+    }
     if (this.match(TokenType.IF)) {
       return this.ifStatement()
     }
@@ -91,6 +97,125 @@ export default class Parser {
     }
 
     return this.expressionStatement()
+  }
+
+  private forStatement(): ForStatement | ForOfStatement | ForInStatement {
+    const forStmtPosition: Position = this.previous().position
+
+    let initializer
+    if (this.match(TokenType.LET) || this.match(TokenType.CONST)) {
+      try {
+        initializer = this.variableDeclaration()
+      } catch (error: any) {
+        if (
+          error.message === 'Expected ASSIGNMENT but got IN' ||
+          error.message === 'Expected ASSIGNMENT but got OF'
+        ) {
+          initializer = new VariableDeclaration(
+            this.tokens[this.current - 2].value as VariableKind,
+            new Identifier(
+              this.previous().value,
+              'any',
+              this.previous().position
+            ),
+            new NullLiteral(this.previous().position),
+            {
+              start: this.tokens[this.current - 2].position.start,
+              end: this.previous().position.end,
+            }
+          )
+        } else {
+          throw error
+        }
+      }
+    } else {
+      initializer = this.expression()
+      if (
+        initializer.$type !== 'VariableDeclaration' &&
+        initializer.$type !== 'Identifier'
+      ) {
+        throw new ParserError(
+          'Expected VariableDeclaration or Identifier but got ' +
+            initializer.$type,
+          initializer.$position
+        )
+      }
+    }
+
+    let right
+    if (this.match(TokenType.IN)) {
+      right = this.expression()
+      if (right.$type !== 'ObjectExpression' && right.$type !== 'Identifier') {
+        throw new ParserError(
+          'Expected ObjectExpression or Identifier but got ' + right.$type,
+          right.$position
+        )
+      }
+
+      this.consume(TokenType.LEFT_BRACE)
+      let body = this.blockStatement()
+
+      forStmtPosition.end = body.$position.end
+      return new ForInStatement(
+        initializer as any,
+        right as any,
+        body.body,
+        forStmtPosition
+      )
+    }
+    if (this.match(TokenType.OF)) {
+      right = this.expression()
+      if (
+        right.$type !== 'ArrayExpression' &&
+        right.$type !== 'RangeExpression' &&
+        right.$type !== 'StringLiteral' &&
+        right.$type !== 'Identifier'
+      ) {
+        throw new ParserError(
+          'Expected ArrayExpression, StringLiteral or Identifier but got ' +
+            right.$type,
+          right.$position
+        )
+      }
+
+      this.consume(TokenType.LEFT_BRACE)
+      let body = this.blockStatement()
+
+      forStmtPosition.end = body.$position.end
+      return new ForOfStatement(
+        initializer as any,
+        right as any,
+        body.body,
+        forStmtPosition
+      )
+    }
+    this.consume(TokenType.SEMI_COLON)
+
+    let condition = null
+    if (!this.check(TokenType.SEMI_COLON)) {
+      condition = this.expression()
+    }
+    this.consume(TokenType.SEMI_COLON)
+
+    let update = null
+    if (!this.check(TokenType.LEFT_BRACE)) {
+      update = this.expression()
+    }
+
+    this.consume(TokenType.LEFT_BRACE)
+    let body = this.blockStatement()
+
+    if (condition === null) {
+      condition = new BooleanLiteral(true, initMinusOne())
+    }
+
+    return new ForStatement(
+      initializer as any,
+      condition as BinaryExpression,
+      update as AssignmentExpression,
+      body.body,
+      forStmtPosition
+    )
   }
 
   private ifStatement(): IfStatement {
