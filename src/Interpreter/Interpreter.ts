@@ -18,6 +18,7 @@ import ObjectExpression from '../AST/ObjectExpression'
 import Position, { initMinusOne } from '../types/Position'
 import ReturnStatement from '../AST/ReturnStatement'
 import Return from './Return'
+import Kr from '../Kr'
 import NullLiteral from '../AST/NullLiteral'
 
 export default class Interpreter {
@@ -38,8 +39,12 @@ export default class Interpreter {
   interpret(nodes: Node[]): void {
     try {
       nodes.forEach((node) => this.execute(node))
-    } catch (error) {
-      console.error('e', error)
+    } catch (error: any) {
+      if (error instanceof InterpreterError) {
+        Kr.printError(error)
+      } else {
+        console.error(error)
+      }
     }
   }
 
