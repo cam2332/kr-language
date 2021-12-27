@@ -45,7 +45,7 @@ export default class Parser {
   public parse(): Program {
     const nodes: Node[] = []
 
-    while (this.tokens.length > 0) {
+    while (!this.isAtEnd()) {
       try {
         nodes.push(this.declaration())
       } catch (err) {
@@ -980,6 +980,13 @@ export default class Parser {
       this.current += 1
     }
     return this.previous()
+  }
+
+  /**
+   * Checks if current token is last
+   */
+  private isAtEnd(): boolean {
+    return this.peek().type === TokenType.TOK_LAST
   }
 
   /**
