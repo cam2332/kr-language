@@ -68,6 +68,7 @@ const TokenString = [
   ':',
   // Separators
   '.',
+  '..',
   ',',
   ';',
   // Parenthesis, Braces, Brackets

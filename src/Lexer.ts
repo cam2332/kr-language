@@ -224,7 +224,18 @@ export function tokenize(sourceFile: string): Token[] {
         continue
       }
 
-      if (line[i] === '.') {
+      if (line[i] === '.' && getNextCharacter(line, i) === '.') {
+        tokens.push({
+          position: {
+            start: { line: lineNumber, column: i },
+            end: { line: lineNumber, column: i + 2 },
+          },
+          type: TokenType.DOUBLE_DOT,
+          value: line[i] + getNextCharacter(line, i),
+        })
+        i += 2
+        continue
+      } else if (line[i] === '.') {
         tokens.push({
           position: {
             start: { line: lineNumber, column: i },

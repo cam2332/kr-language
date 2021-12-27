@@ -72,6 +72,7 @@ export enum TokenType {
   COLON, // :
   // Separators
   DOT, // .
+  DOUBLE_DOT, // ..
   COMMA, // ,
   SEMI_COLON, // ;
   // Parenthesis, Braces, Brackets
