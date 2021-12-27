@@ -632,7 +632,17 @@ export function tokenize(sourceFile: string): Token[] {
     }
     data.push(...tokens)
   })
-  return data
+  return [
+    ...data,
+    {
+      position: {
+        start: data[data.length - 1].position.end,
+        end: data[data.length - 1].position.end,
+      },
+      type: TokenType.TOK_LAST,
+      value: '',
+    },
+  ]
 }
 
 function getNumber(data: { line: string; index: number }): {
