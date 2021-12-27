@@ -28,6 +28,7 @@ import ClassDeclaration, { Accessibility } from '../AST/ClassDeclaration'
 import NullLiteral from '../AST/NullLiteral'
 import ClassMethod from '../AST/ClassMethod'
 import ClassProperty from '../AST/ClassProperty'
+import TokenString from '../types/TokenString'
 
 export default class Parser {
   private tokens: Token[]
@@ -321,7 +322,10 @@ export default class Parser {
     if (!this.check(TokenType.RIGHT_PARENTHESIS)) {
       do {
         if (args.length >= 255) {
-          this.error("Can't have more that 255 arguments.")
+          throw new ParserError(
+            "Can't have more that 255 arguments.",
+            this.peek().position
+          )
         }
         args.push(this.expression())
       } while (this.match(TokenType.COMMA))
@@ -450,10 +454,11 @@ export default class Parser {
         // skip IDENTIFIER or PRIMITIVE_TYPE token
         this.advance()
       } else {
-        this.error(
-          `Expected IDENTIFIER or PRIMITIVE_TYPE (Boolean, Integer, Float, String) but got ${
-            TokenType[this.peek().type]
-          }`
+        throw new ParserError(
+          'Expected IDENTIFIER or PRIMITIVE_TYPE ' +
+            '(Boolean, Integer, Float, String) but got ' +
+            TokenType[this.peek().type],
+          this.peek().position
         )
       }
     }
@@ -501,7 +506,10 @@ export default class Parser {
     if (!this.check(TokenType.RIGHT_PARENTHESIS)) {
       do {
         if (parameters.length >= 255) {
-          this.error("Function can't have more that 255 parameters.")
+          throw new ParserError(
+            "Function can't have more that 255 parameters.",
+            this.peek().position
+          )
         }
 
         this.consume(TokenType.IDENTIFIER)
@@ -522,10 +530,11 @@ export default class Parser {
         // skip IDENTIFIER, PRIMITIVE_TYPE or VOID_TYPE token
         this.advance()
       } else {
-        this.error(
-          `Expected IDENTIFIER or PRIMITIVE_TYPE (Boolean, Integer, Float, String, Void) but got ${
-            TokenType[this.peek().type]
-          }`
+        throw new ParserError(
+          'Expected IDENTIFIER or PRIMITIVE_TYPE ' +
+            '(Boolean, Integer, Float, String, Void) but got ' +
+            TokenType[this.peek().type],
+          this.peek().position
         )
       }
     }
@@ -849,12 +858,5 @@ export default class Parser {
     }
 
     return false
-  }
-
-  /**
-   * @throws {ParserError}
-   */
-  private error(errorMessage: string): void {
-    throw new ParserError(errorMessage, this.peek().position)
   }
 }
