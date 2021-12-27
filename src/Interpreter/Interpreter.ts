@@ -178,9 +178,8 @@ export default class Interpreter {
       case 'ObjectExpression': {
         return (node as ObjectExpression).properties.reduce((obj, property) => {
           obj[property.key.value] = this.evaluate(property.value)
-          console.log(obj, property.key.value)
           return obj
-        }, Object.create(null))
+        }, {} as any)
       }
       default: {
         throw new InterpreterError(
