@@ -119,6 +119,14 @@ export default class Interpreter {
             this.checkNumberOperands(left, right, position)
             return (left as number) * (right as number)
           }
+          case '%': {
+            this.checkNumberOperands(left, right, position)
+            return (left as number) % (right as number)
+          }
+          case '^': {
+            this.checkNumberOperands(left, right, position)
+            return Math.pow(left as number, right as number)
+          }
         }
       }
       case 'NumericLiteral': {
