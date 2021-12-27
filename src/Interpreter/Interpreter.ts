@@ -14,7 +14,7 @@ import CallExpression from '../AST/CallExpression'
 import StringLiteral from '../AST/StringLiteral'
 import NativeKrFunction from './NativeKrFunctions'
 import ParenthesisStatement from '../AST/ParenthesisStatement'
-import { initMinusOne } from '../types/Position'
+import Position, { initMinusOne } from '../types/Position'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
@@ -49,7 +49,7 @@ export default class Interpreter {
           right = this.evaluate(unaryExpression.right)
         switch (unaryExpression.operator) {
           case '-': {
-            this.checkNumberOperand(right)
+            this.checkNumberOperand(right, unaryExpression.right.$position)
             return -right
           }
           case '!': {
@@ -60,7 +60,11 @@ export default class Interpreter {
       case 'BinaryExpression': {
         const binaryExpression = node as BinaryExpression,
           left = this.evaluate(binaryExpression.left),
-          right = this.evaluate(binaryExpression.right)
+          right = this.evaluate(binaryExpression.right),
+          position = {
+            start: binaryExpression.left.$position.start,
+            end: binaryExpression.right.$position.end,
+          }
 
         switch (binaryExpression.operator) {
           case '!=': {
@@ -70,23 +74,23 @@ export default class Interpreter {
             return this.isEqual(left, right)
           }
           case '>': {
-            this.checkNumberOperands(left, right)
+            this.checkNumberOperands(left, right, position)
             return left > right
           }
           case '>=': {
-            this.checkNumberOperands(left, right)
+            this.checkNumberOperands(left, right, position)
             return left >= right
           }
           case '<': {
-            this.checkNumberOperands(left, right)
+            this.checkNumberOperands(left, right, position)
             return left < right
           }
           case '<=': {
-            this.checkNumberOperands(left, right)
+            this.checkNumberOperands(left, right, position)
             return left <= right
           }
           case '-': {
-            this.checkNumberOperands(left, right)
+            this.checkNumberOperands(left, right, position)
             return (left as number) - (right as number)
           }
           case '+': {
@@ -102,15 +106,17 @@ export default class Interpreter {
             if (typeof left === 'string' && typeof right === 'boolean') {
               return left + this.stringify(right)
             }
-            // TODO: add position to error when you add it to Node classes
-            throw new InterpreterError('Operands must be strings or numbers.')
+            throw new InterpreterError('Operands must be strings or numbers.', {
+              start: binaryExpression.left.$position.start,
+              end: binaryExpression.right.$position.end,
+            })
           }
           case '/': {
-            this.checkNumberOperands(left, right)
+            this.checkNumberOperands(left, right, position)
             return (left as number) / (right as number)
           }
           case '*': {
-            this.checkNumberOperands(left, right)
+            this.checkNumberOperands(left, right, position)
             return (left as number) * (right as number)
           }
         }
@@ -150,8 +156,10 @@ export default class Interpreter {
         return this.evaluate((node as ParenthesisStatement).body)
       }
       default: {
-        // TODO: add position to error when you add it to Node classes
-        throw new InterpreterError('Unexpected expression')
+        throw new InterpreterError(
+          "Unexpected expression '" + node.$type + "'",
+          node.$position
+        )
       }
     }
   }
@@ -208,20 +216,22 @@ export default class Interpreter {
     }
   }
 
-  private checkNumberOperand(operand: Object): void {
+  private checkNumberOperand(operand: Object, position: Position): void {
     if (typeof operand === 'number') {
       return
     }
-    // TODO: add position to error when you add it to Node classes
-    throw new InterpreterError('Operand must be a number.')
+    throw new InterpreterError('Operand must be a number.', position)
   }
 
-  private checkNumberOperands(left: Object, right: Object): void {
+  private checkNumberOperands(
+    left: Object,
+    right: Object,
+    position: Position
+  ): void {
     if (typeof left === 'number' && typeof right === 'number') {
       return
     }
-    // TODO: add position to error when you add it to Node classes
-    throw new InterpreterError('Operands must be a numbers.')
+    throw new InterpreterError('Operands must be a numbers.', position)
   }
 
   private isTruthy(object: Object): boolean {
