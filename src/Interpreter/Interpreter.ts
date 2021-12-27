@@ -17,6 +17,7 @@ import ParenthesisStatement from '../AST/ParenthesisStatement'
 import Position, { initMinusOne } from '../types/Position'
 import ReturnStatement from '../AST/ReturnStatement'
 import Return from './Return'
+import NullLiteral from '../AST/NullLiteral'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
@@ -139,6 +140,9 @@ export default class Interpreter {
       }
       case 'StringLiteral': {
         return (node as StringLiteral).value
+      }
+      case 'NullLiteral': {
+        return null as any
       }
       case 'CallExpression': {
         const callExpression = node as CallExpression,
