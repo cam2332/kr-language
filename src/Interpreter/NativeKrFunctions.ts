@@ -3,11 +3,13 @@ import Environment from './Environment'
 import Interpreter from './Interpreter'
 import InterpreterError from './errors/InterpreterError'
 import KrCallable from './KrCallable'
+import KrInstance from './KrInstance'
+import KrValue from './types/KrValue'
 
 export default class NativeKrFunction implements KrCallable {
   private readonly name: Identifier
   private readonly parameters: Identifier[] = []
-  private body: (args: Object[]) => Object | undefined | void
+  private body: (args: KrValue[]) => KrValue | undefined | void
   private readonly closure: Environment
 
   constructor(
@@ -28,7 +30,7 @@ export default class NativeKrFunction implements KrCallable {
   }
 
   // Override KrCallable
-  call(interpreter: Interpreter, args: Object[]): Object | undefined | void {
+  call(interpreter: Interpreter, args: KrValue[]): KrValue | undefined | void {
     const environment: Environment = new Environment(this.closure)
     for (let i = 0; i < this.parameters.length; i++) {
       environment.define(this.parameters[i].value, args[i])

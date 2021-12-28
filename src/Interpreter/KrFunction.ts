@@ -5,7 +5,9 @@ import Environment from './Environment'
 import Interpreter from './Interpreter'
 import InterpreterError from './errors/InterpreterError'
 import KrCallable from './KrCallable'
+import KrInstance from './KrInstance'
 import Return from './Return'
+import KrValue from './types/KrValue'
 
 export default class KrFunction implements KrCallable {
   private readonly declaration: FunctionDeclaration
@@ -28,7 +30,10 @@ export default class KrFunction implements KrCallable {
     return this.declaration.parameters.length
   }
   // Override KrCallable
-  call(interpreter: Interpreter, args: Object[]): Object | undefined | void {
+  call(
+    interpreter: Interpreter,
+    args: KrValue[]
+  ): KrValue | KrInstance | undefined | void {
     const environment: Environment = new Environment(this.closure)
     for (let i = 0; i < this.declaration.parameters.length; i++) {
       environment.define(
@@ -44,10 +49,11 @@ export default class KrFunction implements KrCallable {
     } catch (error) {
       // TODO: add return value type check
       if (error instanceof Return) {
-        if (this.isInitializer) return this.closure.getAt(0, 'this') as Object
+        if (this.isInitializer)
+          return this.closure.getAt(0, 'this') as KrInstance
 
         if (error.value !== null) {
-          return error.value
+          return error.value as KrValue | KrInstance | undefined
         }
         return
       }
@@ -65,7 +71,7 @@ export default class KrFunction implements KrCallable {
       )
     }
 
-    if (this.isInitializer) return this.closure.getAt(0, 'this') as Object
+    if (this.isInitializer) return this.closure.getAt(0, 'this') as KrValue
 
     return
   }

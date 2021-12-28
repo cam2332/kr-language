@@ -20,6 +20,9 @@ import ReturnStatement from '../AST/ReturnStatement'
 import Return from './Return'
 import Kr from '../Kr'
 import NullLiteral from '../AST/NullLiteral'
+import KrObject from './types/KrObject'
+import KrValue from './types/KrValue'
+import KrInstance from './KrInstance'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
@@ -29,7 +32,7 @@ export default class Interpreter {
       new Identifier('print', 'void', initMinusOne()),
       [new Identifier('text', 'string', initMinusOne())],
       (args) => {
-        console.log(args[0])
+        console.log(args[0].getValue() || null)
       },
       this.environment
     )
@@ -48,10 +51,12 @@ export default class Interpreter {
     }
   }
 
-  private evaluate(node: Node): Object {
+  private evaluate(node: Node): KrValue | KrFunction | KrInstance {
     switch (node.$type) {
       case 'Identifier': {
-        return this.environment.get((node as Identifier).value)
+        return this.environment.get((node as Identifier).value) as
+          | KrValue
+          | KrFunction
       }
       case 'UnaryExpression': {
         const unaryExpression = node as UnaryExpression,
@@ -59,10 +64,10 @@ export default class Interpreter {
         switch (unaryExpression.operator) {
           case '-': {
             this.checkNumberOperand(right, unaryExpression.right.$position)
-            return -right
+            return new KrValue(-right)
           }
           case '!': {
-            return !this.isTruthy(right)
+            return new KrValue(!this.isTruthy(right))
           }
         }
       }
@@ -77,43 +82,69 @@ export default class Interpreter {
 
         switch (binaryExpression.operator) {
           case '!=': {
-            return !this.isEqual(left, right)
+            return new KrValue(!this.isEqual(left, right))
           }
           case '==': {
-            return this.isEqual(left, right)
+            return new KrValue(this.isEqual(left, right))
           }
           case '>': {
             this.checkNumberOperands(left, right, position)
-            return left > right
+            return new KrValue(left > right)
           }
           case '>=': {
             this.checkNumberOperands(left, right, position)
-            return left >= right
+            return new KrValue(left >= right)
           }
           case '<': {
             this.checkNumberOperands(left, right, position)
-            return left < right
+            return new KrValue(left < right)
           }
           case '<=': {
             this.checkNumberOperands(left, right, position)
-            return left <= right
+            return new KrValue(left <= right)
           }
           case '-': {
             this.checkNumberOperands(left, right, position)
-            return (left as number) - (right as number)
+            return new KrValue(
+              (left as unknown as number) - (right as unknown as number)
+            )
           }
           case '+': {
-            if (typeof left === 'number' && typeof right === 'number') {
-              return left + right
+            if (
+              KrValue.isKrValue(left) &&
+              typeof left.getValue() === 'number' &&
+              KrValue.isKrValue(right) &&
+              typeof right.getValue() === 'number'
+            ) {
+              return new KrValue(left.getValue() + right.getValue())
             }
-            if (typeof left === 'string' && typeof right === 'string') {
-              return left + right
+            if (
+              KrValue.isKrValue(left) &&
+              typeof left.getValue() === 'string' &&
+              KrValue.isKrValue(right) &&
+              typeof right.getValue() === 'string'
+            ) {
+              return new KrValue(left.getValue() + right.getValue())
             }
-            if (typeof left === 'string' && typeof right === 'number') {
-              return left + this.stringify(right)
+            if (
+              KrValue.isKrValue(left) &&
+              typeof left.getValue() === 'string' &&
+              KrValue.isKrValue(right) &&
+              typeof right.getValue() === 'number'
+            ) {
+              return new KrValue(
+                left.getValue() + this.stringify(right.getValue())
+              )
             }
-            if (typeof left === 'string' && typeof right === 'boolean') {
-              return left + this.stringify(right)
+            if (
+              KrValue.isKrValue(left) &&
+              typeof left.getValue() === 'string' &&
+              KrValue.isKrValue(right) &&
+              typeof right.getValue() === 'boolean'
+            ) {
+              return new KrValue(
+                left.getValue() + this.stringify(right.getValue())
+              )
             }
             throw new InterpreterError('Operands must be strings or numbers.', {
               start: binaryExpression.left.$position.start,
@@ -122,41 +153,53 @@ export default class Interpreter {
           }
           case '/': {
             this.checkNumberOperands(left, right, position)
-            return (left as number) / (right as number)
+            return new KrValue(
+              (left as unknown as number) / (right as unknown as number)
+            )
           }
           case '*': {
-            this.checkNumberOperands(left, right, position)
-            return (left as number) * (right as number)
+            this.checkNumberOperands(
+              (left as KrValue).getValue(),
+              (right as KrValue).getValue(),
+              position
+            )
+            return new KrValue(
+              (left as KrValue).getValue() * (right as KrValue).getValue()
+            )
           }
           case '%': {
             this.checkNumberOperands(left, right, position)
-            return (left as number) % (right as number)
+            return new KrValue(
+              (left as unknown as number) % (right as unknown as number)
+            )
           }
           case '^': {
             this.checkNumberOperands(left, right, position)
-            return Math.pow(left as number, right as number)
+            return new KrValue(
+              Math.pow(left as unknown as number, right as unknown as number)
+            )
           }
         }
       }
       case 'NumericLiteral': {
-        return (node as NumericLiteral).value
+        return new KrValue((node as NumericLiteral).value)
       }
       case 'BooleanLiteral': {
-        return (node as BooleanLiteral).value
+        return new KrValue((node as BooleanLiteral).value)
       }
       case 'StringLiteral': {
-        return (node as StringLiteral).value
+        return new KrValue((node as StringLiteral).value)
       }
       case 'NullLiteral': {
-        return null as any
+        return new KrValue(null)
       }
       case 'CallExpression': {
         const callExpression = node as CallExpression,
           callee = this.environment.get(callExpression.callee.value),
-          args: Object[] = []
+          args: KrValue[] = []
 
         callExpression.args.forEach((argument) => {
-          args.push(this.evaluate(argument))
+          args.push(this.evaluate(argument) as KrValue)
         })
 
         if (!this.isKrCallable(callee)) {
@@ -169,17 +212,23 @@ export default class Interpreter {
         if (callResult) {
           return callResult
         } else {
-          return undefined as unknown as Object
+          return undefined as unknown as KrValue
         }
       }
       case 'ParenthesisStatement': {
         return this.evaluate((node as ParenthesisStatement).body)
       }
       case 'ObjectExpression': {
-        return (node as ObjectExpression).properties.reduce((obj, property) => {
-          obj[property.key.value] = this.evaluate(property.value)
-          return obj
-        }, {} as any)
+        return new KrObject(
+          (node as ObjectExpression).properties.reduce((obj, property) => {
+            obj.set(
+              property.key.value,
+              this.evaluate(property.value) as KrValue
+            )
+            return obj
+          }, new Map<string, KrValue>())
+        )
+      }
       }
       default: {
         throw new InterpreterError(
@@ -195,7 +244,7 @@ export default class Interpreter {
       case 'VariableDeclaration': {
         const variableDeclaration = node as VariableDeclaration,
           name = (variableDeclaration.name as Identifier).value,
-          value: Object = this.evaluate(variableDeclaration.init)
+          value = this.evaluate(variableDeclaration.init)
         this.environment.define(name, value)
         break
       }

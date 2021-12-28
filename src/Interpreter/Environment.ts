@@ -1,16 +1,27 @@
 import InterpreterError from './errors/InterpreterError'
+import KrFunction from './KrFunction'
+import KrInstance from './KrInstance'
+import NativeKrFunction from './NativeKrFunctions'
+import KrValue from './types/KrValue'
 
 export default class Environment {
   enclosing: Environment | undefined
-  private values: Map<string, Object> = new Map<string, Object>()
+  private values: Map<
+    string,
+    KrValue | KrFunction | NativeKrFunction | KrInstance
+  > = new Map<string, KrValue | KrFunction | NativeKrFunction | KrInstance>()
 
   constructor(enclosing?: Environment) {
     this.enclosing = enclosing
   }
 
-  get(name: string): Object {
+  get(name: string): KrValue | KrFunction | NativeKrFunction | KrInstance {
     if (this.values.has(name)) {
-      return this.values.get(name) as Object
+      return this.values.get(name) as
+        | KrValue
+        | KrFunction
+        | NativeKrFunction
+        | KrInstance
     }
 
     if (this.enclosing !== undefined) {
@@ -20,7 +31,10 @@ export default class Environment {
     throw new InterpreterError('Undefined variable ' + name + '.')
   }
 
-  assign(name: string, value: Object): void {
+  assign(
+    name: string,
+    value: KrValue | KrFunction | NativeKrFunction | KrInstance
+  ): void {
     if (this.values.has(name)) {
       this.values.set(name, value)
       return
@@ -34,7 +48,10 @@ export default class Environment {
     throw new InterpreterError('Undefined variable ' + name + '.')
   }
 
-  define(name: string, value: Object): void {
+  define(
+    name: string,
+    value: KrValue | KrFunction | NativeKrFunction | KrInstance
+  ): void {
     this.values.set(name, value)
   }
 
@@ -51,11 +68,18 @@ export default class Environment {
     return environment
   }
 
-  getAt(distance: number, name: string): Object | undefined {
+  getAt(
+    distance: number,
+    name: string
+  ): KrValue | KrFunction | NativeKrFunction | KrInstance | undefined {
     return this.ancestor(distance).values.get(name)
   }
 
-  assignAt(distance: number, name: string, value: Object): void {
+  assignAt(
+    distance: number,
+    name: string,
+    value: KrValue | KrFunction | NativeKrFunction | KrInstance
+  ): void {
     this.ancestor(distance).values.set(name, value)
   }
 }
