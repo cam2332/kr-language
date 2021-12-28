@@ -20,6 +20,7 @@ import ReturnStatement from '../AST/ReturnStatement'
 import Return from './Return'
 import Kr from '../Kr'
 import NullLiteral from '../AST/NullLiteral'
+import MemberExpression from '../AST/MemberExpression'
 import KrObject from './types/KrObject'
 import KrValue from './types/KrValue'
 import KrInstance from './KrInstance'
@@ -229,6 +230,19 @@ export default class Interpreter {
           }, new Map<string, KrValue>())
         )
       }
+      case 'MemberExpression': {
+        const memberExpr = node as MemberExpression
+        const obj = this.evaluate(memberExpr.object)
+
+        if (KrObject.isKrObject(obj)) {
+          const property = obj.get(memberExpr.property.value)
+
+          return property
+        }
+        throw new InterpreterError(
+          "Object is not 'KrObject'.",
+          memberExpr.object.$position
+        )
       }
       default: {
         throw new InterpreterError(
