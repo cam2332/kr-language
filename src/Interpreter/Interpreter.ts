@@ -25,6 +25,8 @@ import MemberExpression from '../AST/MemberExpression'
 import KrObject from './types/KrObject'
 import KrValue from './types/KrValue'
 import KrInstance from './KrInstance'
+import KrArray from './types/KrArray'
+import ArrayExpression from '../AST/ArrayExpression'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
@@ -243,6 +245,13 @@ export default class Interpreter {
         throw new InterpreterError(
           "Object is not 'KrObject'.",
           memberExpr.object.$position
+        )
+      }
+      case 'ArrayExpression': {
+        return new KrArray(
+          (node as ArrayExpression).elements.map((element) => {
+            return this.evaluate(element) as KrValue
+          }, [])
         )
       }
       default: {
