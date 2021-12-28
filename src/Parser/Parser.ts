@@ -430,7 +430,7 @@ export default class Parser {
       } else if (this.match(TokenType.DOT)) {
         const name = this.consume(TokenType.IDENTIFIER)
         expr = new MemberExpression(
-          expr,
+          expr as Identifier | MemberExpression | CallExpression,
           new Identifier(name.value, 'any', name.position),
           { start: expr.$position.start, end: name.position.end }
         )
