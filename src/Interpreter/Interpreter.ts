@@ -20,6 +20,7 @@ import ReturnStatement from '../AST/ReturnStatement'
 import Return from './Return'
 import Kr from '../Kr'
 import NullLiteral from '../AST/NullLiteral'
+import AssignmentExpression from '../AST/AssignmentExpression'
 import MemberExpression from '../AST/MemberExpression'
 import KrObject from './types/KrObject'
 import KrValue from './types/KrValue'
@@ -283,6 +284,86 @@ export default class Interpreter {
           value = this.evaluate(returnStatement.argument)
         }
         throw new Return(value)
+      }
+      case 'AssignmentExpression': {
+        const assignmentExpr = node as AssignmentExpression
+
+        switch (assignmentExpr.operator) {
+          case '=': {
+            if (assignmentExpr.left.$type === 'Identifier') {
+              const name = (assignmentExpr.left as Identifier).value,
+                left = this.evaluate(assignmentExpr.left),
+                right = this.evaluate(assignmentExpr.right)
+
+              if (KrValue.isKrValue(left) && KrValue.isKrValue(right)) {
+                left.setValue(right.getValue())
+              }
+            } else if (assignmentExpr.left.$type === 'MemberExpression') {
+              const left = this.evaluate(assignmentExpr.left),
+                right = this.evaluate(assignmentExpr.right)
+
+              if (KrValue.isKrValue(left) && KrValue.isKrValue(right)) {
+                left.setValue(right.getValue())
+              }
+            }
+            break
+          }
+          case '+=': {
+            if (assignmentExpr.left.$type === 'Identifier') {
+              const name = (assignmentExpr.left as Identifier).value,
+                left = this.evaluate(assignmentExpr.left),
+                right = this.evaluate(assignmentExpr.right)
+
+              if (
+                KrValue.isKrValue(left) &&
+                typeof left.getValue() === 'number' &&
+                KrValue.isKrValue(right) &&
+                typeof right.getValue() === 'number'
+              ) {
+                left.setValue(left.getValue() + right.getValue())
+              } else if (
+                KrValue.isKrValue(left) &&
+                typeof left.getValue() === 'string' &&
+                KrValue.isKrValue(right) &&
+                typeof right.getValue() === 'string'
+              ) {
+                left.setValue(left.getValue() + right.getValue())
+              } else if (
+                KrValue.isKrValue(left) &&
+                typeof left.getValue() === 'string' &&
+                KrValue.isKrValue(right) &&
+                typeof right.getValue() === 'number'
+              ) {
+                left.setValue(
+                  left.getValue() + this.stringify(right.getValue())
+                )
+              } else if (
+                KrValue.isKrValue(left) &&
+                typeof left.getValue() === 'string' &&
+                KrValue.isKrValue(right) &&
+                typeof right.getValue() === 'boolean'
+              ) {
+                left.setValue(
+                  left.getValue() + this.stringify(right.getValue())
+                )
+              } else {
+                console.log(
+                  'e',
+                  (left as KrValue).getValue(),
+                  (right as KrValue).getValue()
+                )
+                throw new InterpreterError(
+                  'Operands must be strings or numbers.',
+                  {
+                    start: assignmentExpr.left.$position.start,
+                    end: assignmentExpr.right.$position.end,
+                  }
+                )
+              }
+            }
+            break
+          }
+        }
       }
     }
   }
