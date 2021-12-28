@@ -60,14 +60,16 @@ export default class KrFunction implements KrCallable {
       throw new InterpreterError(
         "Unexpected error while executing block in function '" +
           this.declaration.name.value +
-          "'. "
+          "'. ",
+        this.declaration.body.$position
       )
     }
     if (!this.declaration.body || !this.declaration.body?.body) {
       throw new InterpreterError(
         "Unexpected empty block in function '" +
           this.declaration.name.value +
-          "'. "
+          "'. ",
+        this.declaration.body.$position
       )
     }
 
