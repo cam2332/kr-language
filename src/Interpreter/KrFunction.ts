@@ -57,6 +57,9 @@ export default class KrFunction implements KrCallable {
         }
         return
       }
+      if (error instanceof InterpreterError) {
+        throw error
+      }
       throw new InterpreterError(
         "Unexpected error while executing block in function '" +
           this.declaration.name.value +
