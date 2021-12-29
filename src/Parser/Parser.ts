@@ -33,6 +33,7 @@ import ForOfStatement from '../AST/ForOfStatement'
 import ForInStatement from '../AST/ForInStatement'
 import ForStatement from '../AST/ForStatement'
 import RangeExpression from '../AST/RangeExpression'
+import ArrayMemberExpression from '../AST/ArrayMemberExpression'
 
 export default class Parser {
   private tokens: Token[]
@@ -433,6 +434,14 @@ export default class Parser {
           expr as Identifier | MemberExpression | CallExpression,
           new Identifier(name.value, 'any', name.position),
           { start: expr.$position.start, end: name.position.end }
+        )
+      } else if (this.match(TokenType.LEFT_BRACKET)) {
+        const index = this.expression()
+        this.consume(TokenType.RIGHT_BRACKET)
+        expr = new ArrayMemberExpression(
+          expr as Identifier | ArrayMemberExpression | CallExpression,
+          index,
+          { start: expr.$position.start, end: this.previous().position.end }
         )
       } else {
         break
