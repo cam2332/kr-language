@@ -245,6 +245,11 @@ export default class Interpreter {
 
           return property
         }
+        if (KrEnum.isKrEnum(obj)) {
+          const property = obj.get(memberExpr.property.value)
+
+          return property
+        }
         throw new InterpreterError(
           "Object is not 'KrObject'.",
           memberExpr.object.$position
