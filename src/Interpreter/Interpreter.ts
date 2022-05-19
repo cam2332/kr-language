@@ -28,6 +28,8 @@ import KrInstance from './KrInstance'
 import KrArray from './types/KrArray'
 import ArrayExpression from '../AST/ArrayExpression'
 import ArrayMemberExpression from '../AST/ArrayMemberExpression'
+import EnumDeclaration from '../AST/EnumDeclaration'
+import KrEnum from './types/KrEnum'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
@@ -286,6 +288,22 @@ export default class Interpreter {
           name = (variableDeclaration.name as Identifier).value,
           value = this.evaluate(variableDeclaration.init)
         this.environment.define(name, value)
+        break
+      }
+      case 'EnumDeclaration': {
+        const enumDeclaration = node as EnumDeclaration,
+          name = enumDeclaration.name.value
+        let valueCounter = new KrValue(0)
+        const members = enumDeclaration.members.reduce((obj, member) => {
+          if (member.initializer) {
+            valueCounter = this.evaluate(member.initializer) as KrValue
+          }
+          obj.set(member.name.value, valueCounter)
+          valueCounter = new KrValue(valueCounter.getValue() + 1)
+
+          return obj
+        }, new Map<string, KrValue>())
+        this.environment.define(name, new KrEnum(members))
         break
       }
       case 'FunctionDeclaration': {
