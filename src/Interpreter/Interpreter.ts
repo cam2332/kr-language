@@ -444,6 +444,13 @@ export default class Interpreter {
   }
 
   private checkNumberOperand(operand: Object, position: Position): void {
+    if (
+      typeof operand === 'object' &&
+      KrValue.isKrValue(operand as KrValue) &&
+      typeof (operand as KrValue).getValue() === 'number'
+    ) {
+      return
+    }
     if (typeof operand === 'number') {
       return
     }
