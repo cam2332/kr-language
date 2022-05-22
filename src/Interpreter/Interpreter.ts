@@ -30,6 +30,8 @@ import ArrayExpression from '../AST/ArrayExpression'
 import ArrayMemberExpression from '../AST/ArrayMemberExpression'
 import EnumDeclaration from '../AST/EnumDeclaration'
 import KrEnum from './types/KrEnum'
+import IfStatement from '../AST/IfStatement'
+import BlockStatement from '../AST/BlockStatement'
 
 export default class Interpreter {
   readonly globals: Environment = new Environment()
@@ -419,6 +421,33 @@ export default class Interpreter {
             break
           }
         }
+        break
+      }
+      case 'IfStatement': {
+        const ifStatement = node as IfStatement,
+          test = this.evaluate(ifStatement.test)
+
+        if (!KrValue.isKrValue(test)) {
+          throw new InterpreterError(
+            'Test in IF statement must be a KrValue.',
+            ifStatement.test.$position
+          )
+        }
+        if (!!test.getValue()) {
+          this.executeBlock(ifStatement.consequent.body, this.environment)
+        } else {
+          if (ifStatement.alternate) {
+            if (ifStatement.alternate.$type === 'IfStatement') {
+              this.execute(ifStatement.alternate)
+            } else {
+              this.executeBlock(
+                (ifStatement.alternate as BlockStatement).body,
+                this.environment
+              )
+            }
+          }
+        }
+        break
       }
     }
   }
