@@ -498,6 +498,16 @@ export default class Interpreter {
     right: Object,
     position: Position
   ): void {
+    if (
+      typeof left === 'object' &&
+      KrValue.isKrValue(left as KrValue) &&
+      typeof (left as KrValue).getValue() === 'number' &&
+      typeof right === 'object' &&
+      KrValue.isKrValue(right as KrValue) &&
+      typeof (right as KrValue).getValue() === 'number'
+    ) {
+      return
+    }
     if (typeof left === 'number' && typeof right === 'number') {
       return
     }
