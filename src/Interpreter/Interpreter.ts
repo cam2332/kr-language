@@ -75,7 +75,13 @@ export default class Interpreter {
             return new KrValue(-right)
           }
           case '!': {
-            return new KrValue(!this.isTruthy(right))
+            if (!KrValue.isKrValue(right)) {
+              throw new InterpreterError(
+                'Right operand must be a KrValue.',
+                unaryExpression.right.$position
+              )
+            }
+            return new KrValue(!right.getValue())
           }
         }
       }
