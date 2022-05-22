@@ -1,3 +1,4 @@
+import Position from '../types/Position'
 import InterpreterError from './errors/InterpreterError'
 import KrFunction from './KrFunction'
 import KrInstance from './KrInstance'
@@ -15,7 +16,10 @@ export default class Environment {
     this.enclosing = enclosing
   }
 
-  get(name: string): KrValue | KrFunction | NativeKrFunction | KrInstance {
+  get(
+    name: string,
+    position?: Position
+  ): KrValue | KrFunction | NativeKrFunction | KrInstance {
     if (this.values.has(name)) {
       return this.values.get(name) as
         | KrValue
@@ -28,7 +32,7 @@ export default class Environment {
       return this.enclosing.get(name)
     }
 
-    throw new InterpreterError('Undefined variable ' + name + '.')
+    throw new InterpreterError('Undefined variable ' + name + '.', position)
   }
 
   assign(

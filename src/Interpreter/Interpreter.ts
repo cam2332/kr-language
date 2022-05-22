@@ -61,9 +61,10 @@ export default class Interpreter {
   private evaluate(node: Node): KrValue | KrFunction | KrInstance {
     switch (node.$type) {
       case 'Identifier': {
-        return this.environment.get((node as Identifier).value) as
-          | KrValue
-          | KrFunction
+        return this.environment.get(
+          (node as Identifier).value,
+          node.$position
+        ) as KrValue | KrFunction
       }
       case 'UnaryExpression': {
         const unaryExpression = node as UnaryExpression,
